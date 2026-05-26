@@ -360,7 +360,10 @@ public static class MacBundleGenerator
             process.Start();
             var output = process.StandardOutput.ReadToEnd().Trim();
             if (!process.WaitForExit(3000))
+            {
+                process.Kill();
                 return null;
+            }
 
             if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
                 return null;
