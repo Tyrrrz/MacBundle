@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Xml.Linq;
 
 namespace MacBundle.Tests;
 
@@ -52,10 +53,19 @@ public class MacBundleGeneratorSpecs
             File.Exists(iconBundlePath).Should().BeTrue();
 
             var plist = File.ReadAllText(plistPath);
-            plist.Should().Contain("<string>SampleApp</string>");
-            plist.Should().Contain("<string>1.2.3.4</string>");
-            plist.Should().Contain("<string>1.2.3</string>");
-            plist.Should().Contain("<string>Copyright (C) Test</string>");
+            var doc = XDocument.Parse(plist);
+            var valuesByKey = doc
+                .Root!
+                .Element("dict")!
+                .Elements()
+                .Chunk(2)
+                .Where(pair => pair.Length == 2 && pair[0].Name.LocalName == "key")
+                .ToDictionary(pair => pair[0].Value, pair => pair[1].Value);
+
+            valuesByKey["CFBundleDisplayName"].Should().Be("SampleApp");
+            valuesByKey["CFBundleVersion"].Should().Be("1.2.3.4");
+            valuesByKey["CFBundleShortVersionString"].Should().Be("1.2.3");
+            valuesByKey["NSHumanReadableCopyright"].Should().Be("Copyright (C) Test");
         }
         finally
         {
