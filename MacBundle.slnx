@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MacBundle.Tests/MacBundle.Tests.csproj" />
+  <Project Path="MacBundle/MacBundle.csproj" />
+</Solution>

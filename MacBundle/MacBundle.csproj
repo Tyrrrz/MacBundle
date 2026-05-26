@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>MacBundle</PackageId>
+    <Description>Automated macOS bundling for .NET apps</Description>
+    <PackageTags>macos osx app bundle msbuild dotnet</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Tyrrrz/MacBundle</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tyrrrz/MacBundle</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.14.28" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.28" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="MacBundle.props" Pack="true" PackagePath="build" />
+    <Content Include="MacBundle.targets" Pack="true" PackagePath="build" />
+    <Content Include="MacBundle.props" Pack="true" PackagePath="buildTransitive" />
+    <Content Include="MacBundle.targets" Pack="true" PackagePath="buildTransitive" />
+  </ItemGroup>
+</Project>
