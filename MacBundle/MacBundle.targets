@@ -1,7 +1,6 @@
 <Project
   xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
   ToolsVersion="4.0"
-  TreatAsLocalProperty="_MacBundleOutputPath"
 >
   <Target
     Name="GenerateMacOSBundleAfterBuild"

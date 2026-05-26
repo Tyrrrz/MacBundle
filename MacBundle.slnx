@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="MacBundle.Demo.Gui/MacBundle.Demo.Gui.csproj" />
   <Project Path="MacBundle.Tests/MacBundle.Tests.csproj" />
   <Project Path="MacBundle/MacBundle.csproj" />
 </Solution>

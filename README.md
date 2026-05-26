@@ -23,3 +23,7 @@ The generated bundle uses:
 - `AppCopyright` from `Copyright`
 - `AppIdentifier` from `MacOSBundleIdentifier`, git remote, or app name
 - `AppSpokenName` from app name
+
+## Demo project
+
+`MacBundle.Demo.Gui` demonstrates local testing without packing/publishing the NuGet package first.
