@@ -54,13 +54,15 @@ public class MacBundleGeneratorSpecs
 
             var plist = File.ReadAllText(plistPath);
             var doc = XDocument.Parse(plist);
-            var valuesByKey = doc
-                .Root!
-                .Element("dict")!
-                .Elements()
-                .Chunk(2)
-                .Where(pair => pair.Length == 2 && pair[0].Name.LocalName == "key")
-                .ToDictionary(pair => pair[0].Value, pair => pair[1].Value);
+            var valuesByKey = new Dictionary<string, string>();
+            var elements = doc.Root!.Element("dict")!.Elements().ToArray();
+            for (var i = 0; i < elements.Length - 1; i++)
+            {
+                if (elements[i].Name.LocalName != "key")
+                    continue;
+
+                valuesByKey[elements[i].Value] = elements[i + 1].Value;
+            }
 
             valuesByKey["CFBundleDisplayName"].Should().Be("SampleApp");
             valuesByKey["CFBundleVersion"].Should().Be("1.2.3.4");
