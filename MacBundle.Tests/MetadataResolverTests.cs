@@ -1,32 +1,49 @@
+using FluentAssertions;
+
 namespace MacBundle.Tests;
 
-public class MetadataResolverTests
+public class MetadataResolverSpecs
 {
     [Fact]
-    public void Should_resolve_identifier_from_github_ssh_remote()
+    public void I_can_resolve_an_identifier_from_a_github_ssh_remote()
     {
+        // Arrange
+        const string remote = "git@github.com:Tyrrrz/YoutubeDownloader.git";
+
+        // Act
         var identifier = MetadataResolver.TryDeriveIdentifierFromGitRemote(
-            "git@github.com:Tyrrrz/YoutubeDownloader.git"
+            remote
         );
 
-        Assert.Equal("io.github.Tyrrrz.YoutubeDownloader", identifier);
+        // Assert
+        identifier.Should().Be("io.github.Tyrrrz.YoutubeDownloader");
     }
 
     [Fact]
-    public void Should_resolve_identifier_from_github_https_remote()
+    public void I_can_resolve_an_identifier_from_a_github_https_remote()
     {
+        // Arrange
+        const string remote = "https://github.com/Tyrrrz/YoutubeDownloader.git";
+
+        // Act
         var identifier = MetadataResolver.TryDeriveIdentifierFromGitRemote(
-            "https://github.com/Tyrrrz/YoutubeDownloader.git"
+            remote
         );
 
-        Assert.Equal("io.github.Tyrrrz.YoutubeDownloader", identifier);
+        // Assert
+        identifier.Should().Be("io.github.Tyrrrz.YoutubeDownloader");
     }
 
     [Fact]
-    public void Should_fallback_identifier_to_app_name_when_remote_is_missing()
+    public void I_fallback_to_the_app_name_when_the_remote_is_missing()
     {
-        var identifier = MetadataResolver.ResolveAppIdentifier(null, "YoutubeDownloader", null);
+        // Arrange
+        const string appName = "YoutubeDownloader";
 
-        Assert.Equal("YoutubeDownloader", identifier);
+        // Act
+        var identifier = MetadataResolver.ResolveAppIdentifier(null, appName, null);
+
+        // Assert
+        identifier.Should().Be(appName);
     }
 }

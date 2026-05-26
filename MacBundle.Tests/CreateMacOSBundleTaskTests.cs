@@ -1,10 +1,13 @@
+using FluentAssertions;
+
 namespace MacBundle.Tests;
 
-public class CreateMacOSBundleTaskTests
+public class MacBundleGeneratorSpecs
 {
     [Fact]
-    public void Should_generate_bundle_with_metadata_and_output_files()
+    public void I_can_generate_a_bundle_with_metadata_and_output_files()
     {
+        // Arrange
         var rootPath = Path.Combine(Path.GetTempPath(), "macbundle-tests-" + Guid.NewGuid().ToString("N"));
         var projectPath = Path.Combine(rootPath, "project");
         var outputPath = Path.Combine(rootPath, "output");
@@ -21,6 +24,7 @@ public class CreateMacOSBundleTaskTests
             File.WriteAllText(libraryPath, "binary-content");
             File.WriteAllText(iconPath, "icns-data");
 
+            // Act
             var result = MacBundleGenerator.Generate(
                 new MacBundleGeneratorOptions
                 {
@@ -33,7 +37,8 @@ public class CreateMacOSBundleTaskTests
                 }
             );
 
-            Assert.True(result);
+            // Assert
+            result.Should().BeTrue();
 
             var bundlePath = Path.Combine(outputPath, "SampleApp.app");
             var plistPath = Path.Combine(bundlePath, "Contents", "Info.plist");
@@ -41,16 +46,16 @@ public class CreateMacOSBundleTaskTests
             var libraryBundlePath = Path.Combine(bundlePath, "Contents", "MacOS", "SampleApp.dll");
             var iconBundlePath = Path.Combine(bundlePath, "Contents", "Resources", "AppIcon.icns");
 
-            Assert.True(File.Exists(plistPath));
-            Assert.True(File.Exists(executableBundlePath));
-            Assert.True(File.Exists(libraryBundlePath));
-            Assert.True(File.Exists(iconBundlePath));
+            File.Exists(plistPath).Should().BeTrue();
+            File.Exists(executableBundlePath).Should().BeTrue();
+            File.Exists(libraryBundlePath).Should().BeTrue();
+            File.Exists(iconBundlePath).Should().BeTrue();
 
             var plist = File.ReadAllText(plistPath);
-            Assert.Contains("<string>SampleApp</string>", plist);
-            Assert.Contains("<string>1.2.3.4</string>", plist);
-            Assert.Contains("<string>1.2.3</string>", plist);
-            Assert.Contains("<string>Copyright (C) Test</string>", plist);
+            plist.Should().Contain("<string>SampleApp</string>");
+            plist.Should().Contain("<string>1.2.3.4</string>");
+            plist.Should().Contain("<string>1.2.3</string>");
+            plist.Should().Contain("<string>Copyright (C) Test</string>");
         }
         finally
         {
