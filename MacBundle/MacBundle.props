@@ -11,7 +11,7 @@
   <UsingTask TaskName="MacBundle.CreateMacOSBundleTask" AssemblyFile="$(_MacBundleTaskAssembly)" />
 
   <PropertyGroup>
-    <_MacBundleTargetingMacOS Condition="$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('osx'))">true</_MacBundleTargetingMacOS>
+    <_MacBundleTargetingMacOS Condition="$([System.String]::Copy('$(RuntimeIdentifier)').ToLowerInvariant().StartsWith('osx'))">true</_MacBundleTargetingMacOS>
     <_MacBundleRunningOnMacOS>$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))</_MacBundleRunningOnMacOS>
 
     <GenerateMacOSBundle Condition="'$(GenerateMacOSBundle)' == '' and ('$(_MacBundleTargetingMacOS)' == 'true' or ('$(RuntimeIdentifier)' == '' and '$(_MacBundleRunningOnMacOS)' == 'True'))">true</GenerateMacOSBundle>
