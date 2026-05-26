@@ -365,7 +365,8 @@ internal static class CommandRunner
     {
         try
         {
-            using var cancellationTokenSource = new CancellationTokenSource(timeout);
+            using var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(timeout);
 
             var result = Cli
                 .Wrap(fileName)
@@ -388,8 +389,34 @@ internal static class CommandRunner
         }
     }
 
-    private static string EscapeArgumentForLog(string argument) =>
-        argument.Contains(' ') ? "\"" + argument.Replace("\"", "\\\"") + "\"" : argument;
+    private static string EscapeArgumentForLog(string argument)
+    {
+        var escaped = argument.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        return argument.Any(ch =>
+                char.IsWhiteSpace(ch)
+                || ch
+                    is '"'
+                        or '\\'
+                        or '\''
+                        or '$'
+                        or '&'
+                        or '|'
+                        or ';'
+                        or '<'
+                        or '>'
+                        or '('
+                        or ')'
+                        or '['
+                        or ']'
+                        or '{'
+                        or '}'
+                        or '*'
+                        or '?'
+                        or '!'
+            )
+            ? "\"" + escaped + "\""
+            : escaped;
+    }
 }
 
 public static class MetadataResolver
