@@ -332,7 +332,10 @@ public static class MacBundleGenerator
             return;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        var destinationDirectory = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(destinationDirectory))
+            Directory.CreateDirectory(destinationDirectory);
+
         File.Copy(sourcePath, destinationPath, true);
     }
 
@@ -356,7 +359,8 @@ public static class MacBundleGenerator
         {
             process.Start();
             var output = process.StandardOutput.ReadToEnd().Trim();
-            process.WaitForExit(3000);
+            if (!process.WaitForExit(3000))
+                return null;
 
             if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
                 return null;
