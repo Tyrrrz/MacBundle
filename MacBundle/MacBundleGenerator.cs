@@ -1,10 +1,13 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
+using CliWrap;
+using CliWrap.Buffered;
 
 namespace MacBundle;
 
@@ -138,49 +141,38 @@ public static class MacBundleGenerator
         var fullVersion = MetadataResolver.ResolveVersion(version, assemblyVersion, fileVersion, "1.0.0");
         var shortVersion = MetadataResolver.ResolveShortVersion(fullVersion);
 
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-                + "<plist version=\"1.0\">\n"
-                + "  <dict>\n"
-                + "    <key>CFBundleDisplayName</key>\n"
-                + "    <string>{0}</string>\n"
-                + "    <key>CFBundleName</key>\n"
-                + "    <string>{1}</string>\n"
-                + "    <key>CFBundleExecutable</key>\n"
-                + "    <string>{2}</string>\n"
-                + "    <key>NSHumanReadableCopyright</key>\n"
-                + "    <string>{3}</string>\n"
-                + "    <key>CFBundleIdentifier</key>\n"
-                + "    <string>{4}</string>\n"
-                + "    <key>CFBundleSpokenName</key>\n"
-                + "    <string>{5}</string>\n"
-                + "    <key>CFBundleIconFile</key>\n"
-                + "    <string>{6}</string>\n"
-                + "    <key>CFBundleIconName</key>\n"
-                + "    <string>{7}</string>\n"
-                + "    <key>CFBundleVersion</key>\n"
-                + "    <string>{8}</string>\n"
-                + "    <key>CFBundleShortVersionString</key>\n"
-                + "    <string>{9}</string>\n"
-                + "    <key>NSHighResolutionCapable</key>\n"
-                + "    <true />\n"
-                + "    <key>CFBundlePackageType</key>\n"
-                + "    <string>APPL</string>\n"
-                + "  </dict>\n"
-                + "</plist>\n",
-            Escape(appName),
-            Escape(appName),
-            Escape(appName),
-            Escape(appCopyright),
-            Escape(appIdentifier),
-            Escape(appSpokenName),
-            Escape(appIconName),
-            Escape(appIconName),
-            Escape(fullVersion),
-            Escape(shortVersion)
-        );
+        return $$"""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+              <dict>
+                <key>CFBundleDisplayName</key>
+                <string>{{Escape(appName)}}</string>
+                <key>CFBundleName</key>
+                <string>{{Escape(appName)}}</string>
+                <key>CFBundleExecutable</key>
+                <string>{{Escape(appName)}}</string>
+                <key>NSHumanReadableCopyright</key>
+                <string>{{Escape(appCopyright)}}</string>
+                <key>CFBundleIdentifier</key>
+                <string>{{Escape(appIdentifier)}}</string>
+                <key>CFBundleSpokenName</key>
+                <string>{{Escape(appSpokenName)}}</string>
+                <key>CFBundleIconFile</key>
+                <string>{{Escape(appIconName)}}</string>
+                <key>CFBundleIconName</key>
+                <string>{{Escape(appIconName)}}</string>
+                <key>CFBundleVersion</key>
+                <string>{{Escape(fullVersion)}}</string>
+                <key>CFBundleShortVersionString</key>
+                <string>{{Escape(shortVersion)}}</string>
+                <key>NSHighResolutionCapable</key>
+                <true />
+                <key>CFBundlePackageType</key>
+                <string>APPL</string>
+              </dict>
+            </plist>
+            """;
     }
 
     private static string Escape(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
@@ -241,9 +233,17 @@ public static class MacBundleGenerator
                 var twoX = Path.Combine(iconSetDirectory, $"icon_{size}x{size}@2x.png");
 
                 if (
-                    !TryRunProcess(
+                    !CommandRunner.TryRun(
                         "sips",
-                        $"-z {size} {size} \"{fullApplicationIconPath}\" --out \"{oneX}\"",
+                        new[]
+                        {
+                            "-z",
+                            size.ToString(CultureInfo.InvariantCulture),
+                            size.ToString(CultureInfo.InvariantCulture),
+                            fullApplicationIconPath,
+                            "--out",
+                            oneX
+                        },
                         logWarning
                     )
                 )
@@ -253,9 +253,17 @@ public static class MacBundleGenerator
 
                 var retinaSize = size * 2;
                 if (
-                    !TryRunProcess(
+                    !CommandRunner.TryRun(
                         "sips",
-                        $"-z {retinaSize} {retinaSize} \"{fullApplicationIconPath}\" --out \"{twoX}\"",
+                        new[]
+                        {
+                            "-z",
+                            retinaSize.ToString(CultureInfo.InvariantCulture),
+                            retinaSize.ToString(CultureInfo.InvariantCulture),
+                            fullApplicationIconPath,
+                            "--out",
+                            twoX
+                        },
                         logWarning
                     )
                 )
@@ -264,54 +272,16 @@ public static class MacBundleGenerator
                 }
             }
 
-            TryRunProcess("iconutil", $"-c icns \"{iconSetDirectory}\" -o \"{targetIcnsPath}\"", logWarning);
+            CommandRunner.TryRun(
+                "iconutil",
+                new[] { "-c", "icns", iconSetDirectory, "-o", targetIcnsPath },
+                logWarning
+            );
         }
         finally
         {
             if (Directory.Exists(iconSetDirectory))
                 Directory.Delete(iconSetDirectory, true);
-        }
-    }
-
-    private static bool TryRunProcess(string fileName, string arguments, Action<string>? logWarning)
-    {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            }
-        };
-
-        try
-        {
-            process.Start();
-            process.WaitForExit();
-
-            if (process.ExitCode == 0)
-                return true;
-
-            var error = process.StandardError.ReadToEnd();
-            logWarning?.Invoke(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Command '{0} {1}' failed: {2}",
-                    fileName,
-                    arguments,
-                    error
-                )
-            );
-            return false;
-        }
-        catch (Exception ex)
-        {
-            logWarning?.Invoke(ex.Message);
-            return false;
         }
     }
 
@@ -341,31 +311,73 @@ public static class MacBundleGenerator
 
     private static string? TryGetGitRemoteUrl(string projectDirectory)
     {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = "config --get remote.origin.url",
-                WorkingDirectory = projectDirectory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            }
-        };
+        return CommandRunner.TryGetStandardOutput(
+            "git",
+            new[] { "config", "--get", "remote.origin.url" },
+            projectDirectory,
+            TimeSpan.FromSeconds(3)
+        );
+    }
+}
 
+internal static class CommandRunner
+{
+    public static bool TryRun(string fileName, IReadOnlyList<string> arguments, Action<string>? logWarning)
+    {
         try
         {
-            process.Start();
-            var output = process.StandardOutput.ReadToEnd().Trim();
-            if (!process.WaitForExit(3000))
-            {
-                process.Kill();
-                return null;
-            }
+            var result = Cli
+                .Wrap(fileName)
+                .WithArguments(arguments)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync()
+                .GetAwaiter()
+                .GetResult();
 
-            if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
+            if (result.ExitCode == 0)
+                return true;
+
+            var error = result.StandardError.Trim();
+            logWarning?.Invoke(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Command '{0} {1}' failed: {2}",
+                    fileName,
+                    string.Join(" ", arguments.Select(EscapeArgumentForLog)),
+                    error
+                )
+            );
+            return false;
+        }
+        catch (Exception ex)
+        {
+            logWarning?.Invoke(ex.Message);
+            return false;
+        }
+    }
+
+    public static string? TryGetStandardOutput(
+        string fileName,
+        IReadOnlyList<string> arguments,
+        string workingDirectory,
+        TimeSpan timeout
+    )
+    {
+        try
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(timeout);
+
+            var result = Cli
+                .Wrap(fileName)
+                .WithArguments(arguments)
+                .WithWorkingDirectory(workingDirectory)
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteBufferedAsync(cancellationTokenSource.Token)
+                .GetAwaiter()
+                .GetResult();
+
+            var output = result.StandardOutput.Trim();
+            if (result.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
                 return null;
 
             return output;
@@ -375,6 +387,9 @@ public static class MacBundleGenerator
             return null;
         }
     }
+
+    private static string EscapeArgumentForLog(string argument) =>
+        argument.Contains(' ') ? "\"" + argument.Replace("\"", "\\\"") + "\"" : argument;
 }
 
 public static class MetadataResolver
