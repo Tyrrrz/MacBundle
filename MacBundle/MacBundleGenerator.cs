@@ -343,7 +343,7 @@ internal static class CommandRunner
                     CultureInfo.InvariantCulture,
                     "Command '{0} {1}' failed: {2}",
                     fileName,
-                    string.Join(" ", arguments.Select(EscapeArgumentForLog)),
+                    string.Join(" ", arguments),
                     error
                 )
             );
@@ -389,34 +389,6 @@ internal static class CommandRunner
         }
     }
 
-    private static string EscapeArgumentForLog(string argument)
-    {
-        var escaped = argument.Replace("\\", "\\\\").Replace("\"", "\\\"");
-        return argument.Any(ch =>
-                char.IsWhiteSpace(ch)
-                || ch
-                    is '"'
-                        or '\\'
-                        or '\''
-                        or '$'
-                        or '&'
-                        or '|'
-                        or ';'
-                        or '<'
-                        or '>'
-                        or '('
-                        or ')'
-                        or '['
-                        or ']'
-                        or '{'
-                        or '}'
-                        or '*'
-                        or '?'
-                        or '!'
-            )
-            ? "\"" + escaped + "\""
-            : escaped;
-    }
 }
 
 public static class MetadataResolver
