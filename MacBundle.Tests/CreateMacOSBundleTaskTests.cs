@@ -1,6 +1,6 @@
 namespace MacBundle.Tests;
 
-public class MacBundleGeneratorTests
+public class CreateMacOSBundleTaskTests
 {
     [Fact]
     public void Should_generate_bundle_with_metadata_and_output_files()

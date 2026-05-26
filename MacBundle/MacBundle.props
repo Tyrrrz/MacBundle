@@ -4,8 +4,7 @@
   TreatAsLocalProperty="TaskAssembly;GenerateMacOSBundle"
 >
   <PropertyGroup>
-    <_MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/MacBundle.dll</_MacBundleTaskAssembly>
-    <_MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/MacBundle.dll</_MacBundleTaskAssembly>
+    <_MacBundleTaskAssembly>$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/MacBundle.dll</_MacBundleTaskAssembly>
   </PropertyGroup>
 
   <UsingTask TaskName="MacBundle.CreateMacOSBundleTask" AssemblyFile="$(_MacBundleTaskAssembly)" />
