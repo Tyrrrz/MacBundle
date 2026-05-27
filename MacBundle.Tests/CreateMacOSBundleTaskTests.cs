@@ -75,4 +75,61 @@ public class MacBundleGeneratorSpecs
                 Directory.Delete(rootPath, true);
         }
     }
+
+    [Fact]
+    public void I_can_generate_an_icns_file_from_a_png_icon()
+    {
+        // Arrange
+        var rootPath = Path.Combine(Path.GetTempPath(), "macbundle-tests-" + Guid.NewGuid().ToString("N"));
+        var projectPath = Path.Combine(rootPath, "project");
+        var outputPath = Path.Combine(rootPath, "output");
+        Directory.CreateDirectory(projectPath);
+        Directory.CreateDirectory(outputPath);
+
+        try
+        {
+            var executablePath = Path.Combine(outputPath, "SampleApp");
+            var pngIconPath = Path.Combine(projectPath, "app.png");
+
+            File.WriteAllText(executablePath, "#!/bin/sh");
+            File.WriteAllBytes(
+                pngIconPath,
+                Convert.FromBase64String(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aS8AAAAASUVORK5CYII="
+                )
+            );
+
+            // Act
+            var result = MacBundleGenerator.Generate(
+                new MacBundleGeneratorOptions
+                {
+                    ProjectDirectory = projectPath,
+                    OutputDirectory = outputPath,
+                    AssemblyName = "SampleApp",
+                    ApplicationIcon = "app.png"
+                }
+            );
+
+            // Assert
+            result.Should().BeTrue();
+
+            var iconBundlePath = Path.Combine(
+                outputPath,
+                "SampleApp.app",
+                "Contents",
+                "Resources",
+                "AppIcon.icns"
+            );
+            File.Exists(iconBundlePath).Should().BeTrue();
+
+            var iconBytes = File.ReadAllBytes(iconBundlePath);
+            iconBytes.Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
+            iconBytes.Skip(8).Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+        }
+        finally
+        {
+            if (Directory.Exists(rootPath))
+                Directory.Delete(rootPath, true);
+        }
+    }
 }

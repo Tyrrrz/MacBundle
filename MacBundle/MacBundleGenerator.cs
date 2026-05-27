@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
 using CliWrap;
@@ -212,77 +211,7 @@ public static class MacBundleGenerator
             return;
         }
 
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            logWarning?.Invoke("Skipping icon conversion to .icns because host OS is not macOS.");
-            return;
-        }
-
-        var iconSetDirectory = Path.Combine(
-            Path.GetTempPath(),
-            "macbundle-iconset-" + Guid.NewGuid().ToString("N")
-        );
-        Directory.CreateDirectory(iconSetDirectory);
-
-        try
-        {
-            var sizes = new[] { 16, 32, 128, 256, 512 };
-            foreach (var size in sizes)
-            {
-                var oneX = Path.Combine(iconSetDirectory, $"icon_{size}x{size}.png");
-                var twoX = Path.Combine(iconSetDirectory, $"icon_{size}x{size}@2x.png");
-
-                if (
-                    !CommandRunner.TryRun(
-                        "sips",
-                        new[]
-                        {
-                            "-z",
-                            size.ToString(CultureInfo.InvariantCulture),
-                            size.ToString(CultureInfo.InvariantCulture),
-                            fullApplicationIconPath,
-                            "--out",
-                            oneX
-                        },
-                        logWarning
-                    )
-                )
-                {
-                    return;
-                }
-
-                var retinaSize = size * 2;
-                if (
-                    !CommandRunner.TryRun(
-                        "sips",
-                        new[]
-                        {
-                            "-z",
-                            retinaSize.ToString(CultureInfo.InvariantCulture),
-                            retinaSize.ToString(CultureInfo.InvariantCulture),
-                            fullApplicationIconPath,
-                            "--out",
-                            twoX
-                        },
-                        logWarning
-                    )
-                )
-                {
-                    return;
-                }
-            }
-
-            CommandRunner.TryRun(
-                "iconutil",
-                new[] { "-c", "icns", iconSetDirectory, "-o", targetIcnsPath },
-                logWarning
-            );
-        }
-        finally
-        {
-            if (Directory.Exists(iconSetDirectory))
-                Directory.Delete(iconSetDirectory, true);
-        }
+        IcnsWriter.TryCreateFromImage(fullApplicationIconPath, targetIcnsPath, logWarning);
     }
 
     private static void CopyFileSystemEntry(string sourcePath, string destinationPath)
@@ -322,40 +251,6 @@ public static class MacBundleGenerator
 
 internal static class CommandRunner
 {
-    public static bool TryRun(string fileName, IReadOnlyList<string> arguments, Action<string>? logWarning)
-    {
-        try
-        {
-            var result = Cli
-                .Wrap(fileName)
-                .WithArguments(arguments)
-                .WithValidation(CommandResultValidation.None)
-                .ExecuteBufferedAsync()
-                .GetAwaiter()
-                .GetResult();
-
-            if (result.ExitCode == 0)
-                return true;
-
-            var error = result.StandardError.Trim();
-            logWarning?.Invoke(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Command '{0} {1}' failed: {2}",
-                    fileName,
-                    string.Join(" ", arguments),
-                    error
-                )
-            );
-            return false;
-        }
-        catch (Exception ex)
-        {
-            logWarning?.Invoke(ex.Message);
-            return false;
-        }
-    }
-
     public static string? TryGetStandardOutput(
         string fileName,
         IReadOnlyList<string> arguments,
