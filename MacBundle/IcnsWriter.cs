@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace MacBundle;
 
@@ -54,12 +53,12 @@ internal static class IcnsWriter
         var totalLength = checked((uint)(8 + payloadLength));
 
         using var stream = File.Create(targetIcnsPath);
-        using var writer = new BinaryWriter(stream, Encoding.ASCII);
+        using var writer = new BinaryWriter(stream);
 
-        writer.Write(Encoding.ASCII.GetBytes("icns"));
+        writer.Write(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
         WriteUInt32BigEndian(writer, totalLength);
 
-        writer.Write(Encoding.ASCII.GetBytes("ic10"));
+        writer.Write(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
         WriteUInt32BigEndian(writer, payloadLength);
         writer.Write(pngData);
 
