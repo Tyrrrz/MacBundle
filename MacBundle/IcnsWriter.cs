@@ -7,7 +7,11 @@ namespace MacBundle;
 
 internal static class IcnsWriter
 {
+    private const uint IcnsHeaderSize = 8;
+    private const uint ChunkHeaderSize = 8;
     private static readonly byte[] PngSignature = { 137, 80, 78, 71, 13, 10, 26, 10 };
+    private static readonly byte[] IcnsMagic = { (byte)'i', (byte)'c', (byte)'n', (byte)'s' };
+    private static readonly byte[] Ic10Type = { (byte)'i', (byte)'c', (byte)'1', (byte)'0' };
 
     public static bool TryCreateFromImage(
         string sourceImagePath,
@@ -33,10 +37,25 @@ internal static class IcnsWriter
             return false;
         }
 
-        var pngData = File.ReadAllBytes(sourceImagePath);
+        var sourceImageInfo = new FileInfo(sourceImagePath);
+        if (sourceImageInfo.Length < PngSignature.Length)
+        {
+            logWarning?.Invoke(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "ApplicationIcon '{0}' is not a valid PNG image.",
+                    sourceImagePath
+                )
+            );
+            return false;
+        }
+
+        using var sourceStream = File.OpenRead(sourceImagePath);
+
+        var signatureBuffer = new byte[PngSignature.Length];
         if (
-            pngData.Length < PngSignature.Length
-            || !pngData.Take(PngSignature.Length).SequenceEqual(PngSignature)
+            sourceStream.Read(signatureBuffer, 0, signatureBuffer.Length) != signatureBuffer.Length
+            || !signatureBuffer.SequenceEqual(PngSignature)
         )
         {
             logWarning?.Invoke(
@@ -49,18 +68,21 @@ internal static class IcnsWriter
             return false;
         }
 
-        var payloadLength = checked((uint)(8 + pngData.Length));
-        var totalLength = checked((uint)(8 + payloadLength));
+        var pngLength = checked((uint)sourceImageInfo.Length);
+        var payloadLength = checked(ChunkHeaderSize + pngLength);
+        var totalLength = checked(IcnsHeaderSize + payloadLength);
 
         using var stream = File.Create(targetIcnsPath);
         using var writer = new BinaryWriter(stream);
 
-        writer.Write(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
+        writer.Write(IcnsMagic);
         WriteUInt32BigEndian(writer, totalLength);
 
-        writer.Write(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+        writer.Write(Ic10Type);
         WriteUInt32BigEndian(writer, payloadLength);
-        writer.Write(pngData);
+
+        sourceStream.Position = 0;
+        sourceStream.CopyTo(stream);
 
         return true;
     }
