@@ -178,12 +178,7 @@ internal static class IcnsWriter
         if (planes != 1 || compression != 0 || (bitsPerPixel != 24 && bitsPerPixel != 32))
             return false;
 
-        var paletteEntries = bitsPerPixel <= 8
-            ? (int)(ReadUInt32LittleEndian(imageData, 32) is var used && used != 0 ? used : 1u << bitsPerPixel)
-            : 0;
-        var paletteSize = paletteEntries * 4;
-
-        var colorDataOffset = checked(headerSize + paletteSize);
+        var colorDataOffset = headerSize;
         var xorStride = ((width * bitsPerPixel + 31) / 32) * 4;
         var xorDataSize = checked(xorStride * height);
         var andStride = ((width + 31) / 32) * 4;
@@ -224,7 +219,7 @@ internal static class IcnsWriter
                 }
 
                 var maskBit = (imageData[andRowOffset + x / 8] >> (7 - (x % 8))) & 1;
-                if (maskBit != 0)
+                if (bitsPerPixel == 24 && maskBit != 0)
                     a = 0;
 
                 var targetOffset = (y * width + x) * 4;

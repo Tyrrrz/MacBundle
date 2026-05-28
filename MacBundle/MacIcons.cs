@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
 
 namespace MacBundle;
@@ -130,7 +129,7 @@ internal sealed class MacIcons
             writer.Write(type);
             writer.Write(data);
 
-            var crc = ComputeCrc32(type.Concat(data).ToArray());
+            var crc = ComputeCrc32(type, data);
             WriteUInt32BigEndian(writer.BaseStream, crc);
         }
 
@@ -149,11 +148,18 @@ internal sealed class MacIcons
             return (b << 16) | a;
         }
 
-        private static uint ComputeCrc32(byte[] data)
+        private static uint ComputeCrc32(ReadOnlySpan<byte> first, ReadOnlySpan<byte> second)
         {
             var crc = 0xFFFFFFFFu;
 
-            foreach (var b in data)
+            foreach (var b in first)
+            {
+                crc ^= b;
+                for (var i = 0; i < 8; i++)
+                    crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
+            }
+
+            foreach (var b in second)
             {
                 crc ^= b;
                 for (var i = 0; i < 8; i++)

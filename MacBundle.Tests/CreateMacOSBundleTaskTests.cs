@@ -208,7 +208,7 @@ public class MacBundleGeneratorSpecs
             var icoIconPath = Path.Combine(projectPath, "app.ico");
 
             File.WriteAllText(executablePath, "#!/bin/sh");
-            File.WriteAllBytes(icoIconPath, CreateIcoFromBmp32(1, 1, r: 255, g: 0, b: 0, a: 255));
+            File.WriteAllBytes(icoIconPath, CreateIcoFromBmp32(8, 8, r: 255, g: 0, b: 0, a: 255));
 
             // Act
             var result = MacBundleGenerator.Generate(
