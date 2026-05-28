@@ -5,6 +5,8 @@ namespace MacBundle.Tests;
 
 public class MacBundleGeneratorSpecs
 {
+    private static readonly byte[] PngSignature = { 137, 80, 78, 71, 13, 10, 26, 10 };
+
     [Fact]
     public void I_can_generate_a_bundle_with_metadata_and_output_files()
     {
@@ -190,6 +192,58 @@ public class MacBundleGeneratorSpecs
         }
     }
 
+    [Fact]
+    public void I_can_generate_an_icns_file_from_a_bmp_based_ico_icon()
+    {
+        // Arrange
+        var rootPath = Path.Combine(Path.GetTempPath(), "macbundle-tests-" + Guid.NewGuid().ToString("N"));
+        var projectPath = Path.Combine(rootPath, "project");
+        var outputPath = Path.Combine(rootPath, "output");
+        Directory.CreateDirectory(projectPath);
+        Directory.CreateDirectory(outputPath);
+
+        try
+        {
+            var executablePath = Path.Combine(outputPath, "SampleApp");
+            var icoIconPath = Path.Combine(projectPath, "app.ico");
+
+            File.WriteAllText(executablePath, "#!/bin/sh");
+            File.WriteAllBytes(icoIconPath, CreateIcoFromBmp32(1, 1, r: 255, g: 0, b: 0, a: 255));
+
+            // Act
+            var result = MacBundleGenerator.Generate(
+                new MacBundleGeneratorOptions
+                {
+                    ProjectDirectory = projectPath,
+                    OutputDirectory = outputPath,
+                    AssemblyName = "SampleApp",
+                    ApplicationIcon = "app.ico"
+                }
+            );
+
+            // Assert
+            result.Should().BeTrue();
+
+            var iconBundlePath = Path.Combine(
+                outputPath,
+                "SampleApp.app",
+                "Contents",
+                "Resources",
+                "AppIcon.icns"
+            );
+            File.Exists(iconBundlePath).Should().BeTrue();
+
+            var iconBytes = File.ReadAllBytes(iconBundlePath);
+            var payload = AssertIcnsPayload(iconBytes);
+            payload.Take(PngSignature.Length).Should().Equal(PngSignature);
+        }
+        finally
+        {
+            if (Directory.Exists(rootPath))
+                Directory.Delete(rootPath, true);
+        }
+    }
+
     private static byte[] CreateIcoFromPng(byte[] pngData)
     {
         using var stream = new MemoryStream();
@@ -230,4 +284,55 @@ public class MacBundleGeneratorSpecs
 
     private static uint ReadUInt32BigEndian(byte[] data, int offset) =>
         (uint)(data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3]);
+
+    private static byte[] CreateIcoFromBmp32(int width, int height, byte r, byte g, byte b, byte a)
+    {
+        var xorStride = ((width * 32 + 31) / 32) * 4;
+        var andStride = ((width + 31) / 32) * 4;
+        var imageSize = 40 + xorStride * height + andStride * height;
+
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write((ushort)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)1);
+
+        writer.Write((byte)width);
+        writer.Write((byte)height);
+        writer.Write((byte)0);
+        writer.Write((byte)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)32);
+        writer.Write((uint)imageSize);
+        writer.Write((uint)(6 + 16));
+
+        writer.Write((uint)40);
+        writer.Write(width);
+        writer.Write(height * 2);
+        writer.Write((ushort)1);
+        writer.Write((ushort)32);
+        writer.Write((uint)0);
+        writer.Write((uint)(xorStride * height));
+        writer.Write(0);
+        writer.Write(0);
+        writer.Write((uint)0);
+        writer.Write((uint)0);
+
+        for (var row = 0; row < height; row++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                writer.Write(b);
+                writer.Write(g);
+                writer.Write(r);
+                writer.Write(a);
+            }
+        }
+
+        writer.Write(new byte[andStride * height]);
+        writer.Flush();
+
+        return stream.ToArray();
+    }
 }
