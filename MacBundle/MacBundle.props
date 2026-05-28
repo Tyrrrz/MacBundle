@@ -13,9 +13,9 @@
 
   <PropertyGroup>
     <_MacBundleTargetingMacOS>false</_MacBundleTargetingMacOS>
-    <_MacBundleTargetingMacOS Condition="$([System.String]::Copy('$(RuntimeIdentifier)').ToLowerInvariant().StartsWith('osx'))">true</_MacBundleTargetingMacOS>
+    <_MacBundleTargetingMacOS Condition="$(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx'))">true</_MacBundleTargetingMacOS>
     <_MacBundleRunningOnMacOS>false</_MacBundleRunningOnMacOS>
-    <_MacBundleRunningOnMacOS Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))"
+    <_MacBundleRunningOnMacOS Condition="$([MSBuild]::IsOsPlatform('OSX'))"
       >true</_MacBundleRunningOnMacOS
     >
 

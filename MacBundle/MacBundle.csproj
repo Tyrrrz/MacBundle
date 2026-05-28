@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" />
+    <PackageReference Include="CliWrap" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
@@ -31,4 +31,19 @@
     <Content Include="MacBundle.props" Pack="true" PackagePath="buildTransitive" />
     <Content Include="MacBundle.targets" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
+    </TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage
+        Include="@(ReferenceCopyLocalPaths)"
+        TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)"
+      />
+    </ItemGroup>
+  </Target>
 </Project>

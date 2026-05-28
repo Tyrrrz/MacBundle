@@ -1,5 +1,6 @@
 using FluentAssertions;
 using System.Xml.Linq;
+using Xunit;
 
 namespace MacBundle.Tests;
 
