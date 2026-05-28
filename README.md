@@ -15,7 +15,7 @@ Automated macOS bundling for .NET apps.
 - `MacOSBundleIdentifier` (`string`) — app identifier. Defaults to:
   1. identifier derived from git remote (for GitHub remotes: `io.github.<Owner>.<Repo>`), then
   2. `MacOSBundleName`/`AssemblyName`.
-- `ApplicationIcon` (`string`) — icon source file. `.icns` is copied directly; on macOS, other image formats are converted to `.icns`.
+- `ApplicationIcon` (`string`) — icon source file. `.icns` is copied directly; `.ico` (PNG-encoded entries) and `.png` are converted to `.icns` in managed code.
 
 The generated bundle uses:
 

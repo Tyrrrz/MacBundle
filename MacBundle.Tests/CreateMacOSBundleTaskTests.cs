@@ -132,4 +132,83 @@ public class MacBundleGeneratorSpecs
                 Directory.Delete(rootPath, true);
         }
     }
+
+    [Fact]
+    public void I_can_generate_an_icns_file_from_an_ico_icon()
+    {
+        // Arrange
+        var rootPath = Path.Combine(Path.GetTempPath(), "macbundle-tests-" + Guid.NewGuid().ToString("N"));
+        var projectPath = Path.Combine(rootPath, "project");
+        var outputPath = Path.Combine(rootPath, "output");
+        Directory.CreateDirectory(projectPath);
+        Directory.CreateDirectory(outputPath);
+
+        try
+        {
+            var executablePath = Path.Combine(outputPath, "SampleApp");
+            var icoIconPath = Path.Combine(projectPath, "app.ico");
+            var pngData = Convert.FromBase64String(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aS8AAAAASUVORK5CYII="
+            );
+
+            File.WriteAllText(executablePath, "#!/bin/sh");
+            File.WriteAllBytes(icoIconPath, CreateIcoFromPng(pngData));
+
+            // Act
+            var result = MacBundleGenerator.Generate(
+                new MacBundleGeneratorOptions
+                {
+                    ProjectDirectory = projectPath,
+                    OutputDirectory = outputPath,
+                    AssemblyName = "SampleApp",
+                    ApplicationIcon = "app.ico"
+                }
+            );
+
+            // Assert
+            result.Should().BeTrue();
+
+            var iconBundlePath = Path.Combine(
+                outputPath,
+                "SampleApp.app",
+                "Contents",
+                "Resources",
+                "AppIcon.icns"
+            );
+            File.Exists(iconBundlePath).Should().BeTrue();
+
+            var iconBytes = File.ReadAllBytes(iconBundlePath);
+            iconBytes.Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
+            iconBytes.Skip(8).Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+        }
+        finally
+        {
+            if (Directory.Exists(rootPath))
+                Directory.Delete(rootPath, true);
+        }
+    }
+
+    private static byte[] CreateIcoFromPng(byte[] pngData)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write((ushort)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)1);
+
+        writer.Write((byte)1);
+        writer.Write((byte)1);
+        writer.Write((byte)0);
+        writer.Write((byte)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)32);
+        writer.Write((uint)pngData.Length);
+        writer.Write((uint)(6 + 16));
+
+        writer.Write(pngData);
+        writer.Flush();
+
+        return stream.ToArray();
+    }
 }
