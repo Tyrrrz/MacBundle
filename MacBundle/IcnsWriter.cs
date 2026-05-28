@@ -219,7 +219,7 @@ internal static class IcnsWriter
                 }
 
                 var maskBit = (imageData[andRowOffset + x / 8] >> (7 - (x % 8))) & 1;
-                if (bitsPerPixel == 24 && maskBit != 0)
+                if (maskBit != 0)
                     a = 0;
 
                 var targetOffset = (y * width + x) * 4;
