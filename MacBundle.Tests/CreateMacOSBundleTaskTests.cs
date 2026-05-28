@@ -123,8 +123,11 @@ public class MacBundleGeneratorSpecs
             File.Exists(iconBundlePath).Should().BeTrue();
 
             var iconBytes = File.ReadAllBytes(iconBundlePath);
-            iconBytes.Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
-            iconBytes.Skip(8).Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+            AssertIcnsPayload(iconBytes).Should().Equal(
+                Convert.FromBase64String(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aS8AAAAASUVORK5CYII="
+                )
+            );
         }
         finally
         {
@@ -178,8 +181,7 @@ public class MacBundleGeneratorSpecs
             File.Exists(iconBundlePath).Should().BeTrue();
 
             var iconBytes = File.ReadAllBytes(iconBundlePath);
-            iconBytes.Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
-            iconBytes.Skip(8).Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+            AssertIcnsPayload(iconBytes).Should().Equal(pngData);
         }
         finally
         {
@@ -211,4 +213,21 @@ public class MacBundleGeneratorSpecs
 
         return stream.ToArray();
     }
+
+    private static byte[] AssertIcnsPayload(byte[] icnsData)
+    {
+        icnsData.Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'n', (byte)'s' });
+        icnsData.Skip(8).Take(4).Should().Equal(new byte[] { (byte)'i', (byte)'c', (byte)'1', (byte)'0' });
+
+        var totalLength = ReadUInt32BigEndian(icnsData, 4);
+        var chunkLength = ReadUInt32BigEndian(icnsData, 12);
+
+        totalLength.Should().Be((uint)icnsData.Length);
+        chunkLength.Should().Be((uint)(icnsData.Length - 8));
+
+        return icnsData.Skip(16).ToArray();
+    }
+
+    private static uint ReadUInt32BigEndian(byte[] data, int offset) =>
+        (uint)(data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3]);
 }

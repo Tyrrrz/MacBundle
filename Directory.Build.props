@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Tyrrrz</Authors>
+    <Company>Tyrrrz</Company>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+</Project>

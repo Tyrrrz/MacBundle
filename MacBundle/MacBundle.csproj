@@ -2,14 +2,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>MacBundle</PackageId>
     <Description>Automated macOS bundling for .NET apps</Description>
     <PackageTags>macos osx app bundle msbuild dotnet</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Tyrrrz/MacBundle</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Tyrrrz/MacBundle</RepositoryUrl>
   </PropertyGroup>
@@ -21,9 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.10.1" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.14.28" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.28" PrivateAssets="all" />
+    <PackageReference Include="CliWrap" />
+    <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" PrivateAssets="all" />
+    <PackageReference Include="PowerKit" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
