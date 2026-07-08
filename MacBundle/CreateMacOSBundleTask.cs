@@ -29,7 +29,7 @@ public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
-        var options = new MacBundleGeneratorOptions
+        var options = new MacBundleProperties
         {
             ProjectDirectory = ProjectDirectory,
             OutputDirectory = OutputDirectory,

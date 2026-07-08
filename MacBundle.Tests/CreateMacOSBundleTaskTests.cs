@@ -30,7 +30,7 @@ public class MacBundleGeneratorSpecs
 
             // Act
             var result = MacBundleGenerator.Generate(
-                new MacBundleGeneratorOptions
+                new MacBundleProperties
                 {
                     ProjectDirectory = projectPath,
                     OutputDirectory = outputPath,
@@ -97,7 +97,7 @@ public class MacBundleGeneratorSpecs
 
             // Act
             var result = MacBundleGenerator.Generate(
-                new MacBundleGeneratorOptions
+                new MacBundleProperties
                 {
                     ProjectDirectory = projectPath,
                     OutputDirectory = outputPath,
@@ -164,7 +164,7 @@ public class MacBundleGeneratorSpecs
 
             // Act
             var result = MacBundleGenerator.Generate(
-                new MacBundleGeneratorOptions
+                new MacBundleProperties
                 {
                     ProjectDirectory = projectPath,
                     OutputDirectory = outputPath,
@@ -222,7 +222,7 @@ public class MacBundleGeneratorSpecs
 
             // Act
             var result = MacBundleGenerator.Generate(
-                new MacBundleGeneratorOptions
+                new MacBundleProperties
                 {
                     ProjectDirectory = projectPath,
                     OutputDirectory = outputPath,
@@ -273,7 +273,7 @@ public class MacBundleGeneratorSpecs
 
             // Act
             var result = MacBundleGenerator.Generate(
-                new MacBundleGeneratorOptions
+                new MacBundleProperties
                 {
                     ProjectDirectory = projectPath,
                     OutputDirectory = outputPath,
