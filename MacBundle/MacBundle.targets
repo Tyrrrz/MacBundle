@@ -1,0 +1,47 @@
+<Project
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+  ToolsVersion="4.0"
+>
+  <Target
+    Name="GenerateMacOSBundleAfterBuild"
+    AfterTargets="Build"
+    Condition="'$(GenerateMacOSBundle)' == 'true' and '$(OutputType)' != 'Library'"
+  >
+    <CreateMacOSBundleTask
+      ProjectDirectory="$(MSBuildProjectDirectory)"
+      OutputDirectory="$(TargetDir)"
+      AssemblyName="$(AssemblyName)"
+      MacOSBundleName="$(MacOSBundleName)"
+      MacOSBundleIdentifier="$(MacOSBundleIdentifier)"
+      Copyright="$(Copyright)"
+      ApplicationIcon="$(ApplicationIcon)"
+      Version="$(Version)"
+      AssemblyVersion="$(AssemblyVersion)"
+      FileVersion="$(FileVersion)"
+    />
+  </Target>
+
+  <Target
+    Name="GenerateMacOSBundleAfterPublish"
+    AfterTargets="Publish"
+    Condition="'$(GenerateMacOSBundle)' == 'true' and '$(OutputType)' != 'Library'"
+  >
+    <PropertyGroup>
+      <_MacBundleOutputPath Condition="$([System.IO.Path]::IsPathRooted('$(PublishDir)'))">$(PublishDir)</_MacBundleOutputPath>
+      <_MacBundleOutputPath Condition="!$([System.IO.Path]::IsPathRooted('$(PublishDir)'))">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(PublishDir)'))</_MacBundleOutputPath>
+    </PropertyGroup>
+
+    <CreateMacOSBundleTask
+      ProjectDirectory="$(MSBuildProjectDirectory)"
+      OutputDirectory="$(_MacBundleOutputPath)"
+      AssemblyName="$(AssemblyName)"
+      MacOSBundleName="$(MacOSBundleName)"
+      MacOSBundleIdentifier="$(MacOSBundleIdentifier)"
+      Copyright="$(Copyright)"
+      ApplicationIcon="$(ApplicationIcon)"
+      Version="$(Version)"
+      AssemblyVersion="$(AssemblyVersion)"
+      FileVersion="$(FileVersion)"
+    />
+  </Target>
+</Project>

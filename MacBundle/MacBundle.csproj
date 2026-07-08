@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>MacBundle</PackageId>
+    <Description>Automated macOS bundling for .NET apps</Description>
+    <PackageTags>macos osx app bundle msbuild dotnet</PackageTags>
+    <PackageProjectUrl>https://github.com/Tyrrrz/MacBundle</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tyrrrz/MacBundle</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
+    <PackageReference Include="PolyShim" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="MacBundle.props" Pack="true" PackagePath="build" />
+    <Content Include="MacBundle.targets" Pack="true" PackagePath="build" />
+    <Content Include="MacBundle.props" Pack="true" PackagePath="buildTransitive" />
+    <Content Include="MacBundle.targets" Pack="true" PackagePath="buildTransitive" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
+    </TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage
+        Include="@(ReferenceCopyLocalPaths)"
+        TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)"
+      />
+    </ItemGroup>
+  </Target>
+</Project>
