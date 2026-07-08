@@ -5,24 +5,20 @@ using System.Text;
 
 namespace MacBundle;
 
-internal sealed class MacIcons
+internal class MacIcons(byte[] pngData)
 {
     private static readonly byte[] IcnsMagic = { (byte)'i', (byte)'c', (byte)'n', (byte)'s' };
     private static readonly byte[] Ic10Type = { (byte)'i', (byte)'c', (byte)'1', (byte)'0' };
 
-    private readonly byte[] _pngData;
-
-    private MacIcons(byte[] pngData) => _pngData = pngData;
-
     public static MacIcons FromBitmap(Bitmap bitmap) => new(PngCodec.Encode(bitmap));
 
-    public static MacIcons FromPngData(byte[] pngData) => new(pngData);
+    public static MacIcons FromPngData(byte[] data) => new(data);
 
     public void Write(Stream stream)
     {
         using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
 
-        var payloadLength = checked(8u + (uint)_pngData.Length);
+        var payloadLength = checked(8u + (uint)pngData.Length);
         var totalLength = checked(8u + payloadLength);
 
         writer.Write(IcnsMagic);
@@ -30,7 +26,7 @@ internal sealed class MacIcons
 
         writer.Write(Ic10Type);
         WriteUInt32BigEndian(writer, payloadLength);
-        writer.Write(_pngData);
+        writer.Write(pngData);
     }
 
     private static void WriteUInt32BigEndian(BinaryWriter writer, uint value)

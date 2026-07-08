@@ -1,6 +1,6 @@
 namespace MacBundle;
 
-public sealed class MacBundleProperties
+public class MacBundleProperties
 {
     public required string ProjectDirectory { get; init; }
 
