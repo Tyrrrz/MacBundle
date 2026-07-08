@@ -29,7 +29,6 @@ public static class MacBundleGenerator
         var appName = string.IsNullOrWhiteSpace(options.MacOSBundleName)
             ? options.AssemblyName
             : options.MacOSBundleName!;
-        var appSpokenName = appName;
         var appIdentifier = MetadataResolver.ResolveAppIdentifier(
             options.MacOSBundleIdentifier,
             appName,
@@ -78,7 +77,7 @@ public static class MacBundleGenerator
             GenerateInfoPlist(
                 appName,
                 options.AssemblyName,
-                appSpokenName,
+                appName,
                 appIdentifier,
                 appIconName,
                 options.Copyright,
