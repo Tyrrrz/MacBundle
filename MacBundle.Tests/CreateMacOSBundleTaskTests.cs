@@ -68,9 +68,69 @@ public class MacBundleGeneratorSpecs
             }
 
             valuesByKey["CFBundleDisplayName"].Should().Be("SampleApp");
+            valuesByKey["CFBundleExecutable"].Should().Be("SampleApp");
             valuesByKey["CFBundleVersion"].Should().Be("1.2.3.4");
             valuesByKey["CFBundleShortVersionString"].Should().Be("1.2.3");
             valuesByKey["NSHumanReadableCopyright"].Should().Be("Copyright (C) Test");
+        }
+        finally
+        {
+            if (Directory.Exists(rootPath))
+                Directory.Delete(rootPath, true);
+        }
+    }
+
+    [Fact]
+    public void I_can_generate_a_bundle_where_CFBundleExecutable_matches_assembly_name_not_bundle_name()
+    {
+        // Arrange
+        var rootPath = Path.Combine(Path.GetTempPath(), "macbundle-tests-" + Guid.NewGuid().ToString("N"));
+        var projectPath = Path.Combine(rootPath, "project");
+        var outputPath = Path.Combine(rootPath, "output");
+        Directory.CreateDirectory(projectPath);
+        Directory.CreateDirectory(outputPath);
+
+        try
+        {
+            var executablePath = Path.Combine(outputPath, "MyAssembly");
+            File.WriteAllText(executablePath, "#!/bin/sh");
+
+            // Act
+            var result = MacBundleGenerator.Generate(
+                new MacBundleGeneratorOptions
+                {
+                    ProjectDirectory = projectPath,
+                    OutputDirectory = outputPath,
+                    AssemblyName = "MyAssembly",
+                    MacOSBundleName = "My Cool App"
+                }
+            );
+
+            // Assert
+            result.Should().BeTrue();
+
+            var bundlePath = Path.Combine(outputPath, "My Cool App.app");
+            var plistPath = Path.Combine(bundlePath, "Contents", "Info.plist");
+            var executableBundlePath = Path.Combine(bundlePath, "Contents", "MacOS", "MyAssembly");
+
+            File.Exists(plistPath).Should().BeTrue();
+            File.Exists(executableBundlePath).Should().BeTrue();
+
+            var plist = File.ReadAllText(plistPath);
+            var doc = XDocument.Parse(plist);
+            var valuesByKey = new Dictionary<string, string>();
+            var elements = doc.Root!.Element("dict")!.Elements().ToArray();
+            for (var i = 0; i < elements.Length - 1; i++)
+            {
+                if (elements[i].Name.LocalName != "key")
+                    continue;
+
+                valuesByKey[elements[i].Value] = elements[i + 1].Value;
+            }
+
+            valuesByKey["CFBundleDisplayName"].Should().Be("My Cool App");
+            valuesByKey["CFBundleName"].Should().Be("My Cool App");
+            valuesByKey["CFBundleExecutable"].Should().Be("MyAssembly");
         }
         finally
         {

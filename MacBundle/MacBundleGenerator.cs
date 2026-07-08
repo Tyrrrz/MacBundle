@@ -105,6 +105,7 @@ public static class MacBundleGenerator
             Path.Combine(contentsDirectory, "Info.plist"),
             GenerateInfoPlist(
                 appName,
+                options.AssemblyName,
                 appSpokenName,
                 appIdentifier,
                 appIconName,
@@ -128,6 +129,7 @@ public static class MacBundleGenerator
 
     private static string GenerateInfoPlist(
         string appName,
+        string executableName,
         string appSpokenName,
         string appIdentifier,
         string appIconName,
@@ -150,7 +152,7 @@ public static class MacBundleGenerator
                 <key>CFBundleName</key>
                 <string>{{Escape(appName)}}</string>
                 <key>CFBundleExecutable</key>
-                <string>{{Escape(appName)}}</string>
+                <string>{{Escape(executableName)}}</string>
                 <key>NSHumanReadableCopyright</key>
                 <string>{{Escape(appCopyright)}}</string>
                 <key>CFBundleIdentifier</key>
