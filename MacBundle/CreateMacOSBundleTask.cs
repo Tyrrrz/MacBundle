@@ -5,13 +5,13 @@ namespace MacBundle;
 public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
 {
     [Required]
-    public string ProjectDirectory { get; set; } = null!;
+    public required string ProjectDirectory { get; set; }
 
     [Required]
-    public string OutputDirectory { get; set; } = null!;
+    public required string OutputDirectory { get; set; }
 
     [Required]
-    public string AssemblyName { get; set; } = null!;
+    public required string AssemblyName { get; set; }
 
     public string? MacOSBundleName { get; set; }
 
