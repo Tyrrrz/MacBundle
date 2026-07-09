@@ -110,7 +110,12 @@ public static class MacBundleGenerator
         string? fileVersion
     )
     {
-        var fullVersion = MetadataResolver.ResolveVersion(version, assemblyVersion, fileVersion, "1.0.0");
+        var fullVersion = MetadataResolver.ResolveVersion(
+            version,
+            assemblyVersion,
+            fileVersion,
+            "1.0.0"
+        );
         var shortVersion = MetadataResolver.ResolveShortVersion(fullVersion);
 
         return $$"""
@@ -147,7 +152,8 @@ public static class MacBundleGenerator
             """;
     }
 
-    private static string Escape(string? value) => SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
+    private static string Escape(string? value) =>
+        SecurityElement.Escape(value ?? string.Empty) ?? string.Empty;
 
     private static void TryCreateIcnsIcon(
         string projectDirectory,

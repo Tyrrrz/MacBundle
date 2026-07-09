@@ -1,24 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageId>MacBundle</PackageId>
-    <Description>Automated macOS bundling for .NET apps</Description>
-    <PackageTags>macos osx app bundle msbuild dotnet</PackageTags>
-    <PackageProjectUrl>https://github.com/Tyrrrz/MacBundle</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Tyrrrz/MacBundle</RepositoryUrl>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
 
   <PropertyGroup>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CliWrap" PrivateAssets="all" />
+    <PackageReference Include="CSharpier.MSBuild" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
@@ -27,10 +23,9 @@
   <ItemGroup>
     <Content Include="MacBundle.props" Pack="true" PackagePath="build" />
     <Content Include="MacBundle.targets" Pack="true" PackagePath="build" />
-    <Content Include="MacBundle.props" Pack="true" PackagePath="buildTransitive" />
-    <Content Include="MacBundle.targets" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>
 
+  <!-- Embed package references inside this package -->
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>
       $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
@@ -42,6 +37,21 @@
       <BuildOutputInPackage
         Include="@(ReferenceCopyLocalPaths)"
         TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)"
+      />
+    </ItemGroup>
+  </Target>
+
+  <!-- Embed the generated deps.json file inside this package -->
+  <Target
+    Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
+    BeforeTargets="BuiltProjectOutputGroup"
+    Condition="$(GenerateDependencyFile)"
+  >
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput
+        Include="$(ProjectDepsFilePath)"
+        TargetPath="$(ProjectDepsFileName)"
+        FinalOutputPath="$(ProjectDepsFilePath)"
       />
     </ItemGroup>
   </Target>

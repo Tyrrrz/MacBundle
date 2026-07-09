@@ -5,6 +5,7 @@
 
   <ItemGroup>
     <PackageVersion Include="CliWrap" Version="3.10.1" />
+    <PackageVersion Include="CSharpier.MSBuild" Version="1.2.6" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.14.28" />

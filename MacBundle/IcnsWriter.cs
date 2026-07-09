@@ -14,7 +14,13 @@ internal static class IcnsWriter
         Action<string>? logWarning
     )
     {
-        if (string.Equals(Path.GetExtension(sourceImagePath), ".png", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                Path.GetExtension(sourceImagePath),
+                ".png",
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
         {
             var pngData = File.ReadAllBytes(sourceImagePath);
             if (pngData.Length < PngSignature.Length || !HasPngSignature(pngData, 0))
@@ -34,7 +40,13 @@ internal static class IcnsWriter
             return true;
         }
 
-        if (string.Equals(Path.GetExtension(sourceImagePath), ".ico", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                Path.GetExtension(sourceImagePath),
+                ".ico",
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
             return TryCreateFromIco(sourceImagePath, targetIcnsPath, logWarning);
 
         logWarning?.Invoke(
@@ -241,7 +253,12 @@ internal static class IcnsWriter
         ReadUInt16LittleEndian(data.AsSpan(), offset);
 
     private static uint ReadUInt32LittleEndian(ReadOnlySpan<byte> data, int offset) =>
-        (uint)(data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24));
+        (uint)(
+            data[offset]
+            | (data[offset + 1] << 8)
+            | (data[offset + 2] << 16)
+            | (data[offset + 3] << 24)
+        );
 
     private static uint ReadUInt32LittleEndian(byte[] data, int offset) =>
         ReadUInt32LittleEndian(data.AsSpan(), offset);

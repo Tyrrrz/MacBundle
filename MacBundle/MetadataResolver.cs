@@ -111,9 +111,7 @@ public static class MetadataResolver
     private static string SanitizeIdentifierSegment(string value)
     {
         var normalized = new string(
-            value
-                .Where(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_')
-                .ToArray()
+            value.Where(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_').ToArray()
         );
 
         return string.IsNullOrWhiteSpace(normalized) ? "app" : normalized;

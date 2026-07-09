@@ -7,8 +7,6 @@
 
   <!-- Props for local testing, used by the demo project -->
   <PropertyGroup>
-    <TaskAssembly
-      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</TaskAssembly
-    >
+    <TaskAssembly>$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</TaskAssembly>
   </PropertyGroup>
 </Project>

@@ -20,8 +20,7 @@ internal static class CommandRunner
             using var cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(timeout);
 
-            var result = Cli
-                .Wrap(fileName)
+            var result = Cli.Wrap(fileName)
                 .WithArguments(arguments)
                 .WithWorkingDirectory(workingDirectory)
                 .WithValidation(CommandResultValidation.None)

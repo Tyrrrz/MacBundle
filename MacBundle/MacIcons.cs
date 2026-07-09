@@ -90,7 +90,9 @@ internal class MacIcons(byte[] pngData)
         private static byte[] Deflate(byte[] data)
         {
             using var outputStream = new MemoryStream();
-            using (var deflateStream = new DeflateStream(outputStream, CompressionLevel.Optimal, true))
+            using (
+                var deflateStream = new DeflateStream(outputStream, CompressionLevel.Optimal, true)
+            )
                 deflateStream.Write(data, 0, data.Length);
 
             return outputStream.ToArray();
