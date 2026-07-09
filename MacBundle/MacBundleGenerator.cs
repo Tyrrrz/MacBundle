@@ -190,7 +190,7 @@ public static class MacBundleGenerator
             return;
         }
 
-        IcnsWriter.TryCreateFromImage(fullApplicationIconPath, targetIcnsPath, logWarning);
+        IcnsWriter.TryCreateFromIco(fullApplicationIconPath, targetIcnsPath, logWarning);
     }
 
     private static void CopyFileSystemEntry(string sourcePath, string destinationPath)
