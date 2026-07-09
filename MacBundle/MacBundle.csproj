@@ -7,10 +7,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PackageIcon>favicon.png</PackageIcon>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
     <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../favicon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CliWrap" PrivateAssets="all" />
