@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -6,60 +7,9 @@ namespace MacBundle;
 
 internal static class IcnsWriter
 {
-    private static readonly byte[] PngSignature = { 137, 80, 78, 71, 13, 10, 26, 10 };
+    private static readonly byte[] PngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
 
-    public static bool TryCreateFromImage(
-        string sourceImagePath,
-        string targetIcnsPath,
-        Action<string>? logWarning
-    )
-    {
-        if (
-            string.Equals(
-                Path.GetExtension(sourceImagePath),
-                ".png",
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
-        {
-            var pngData = File.ReadAllBytes(sourceImagePath);
-            if (pngData.Length < PngSignature.Length || !HasPngSignature(pngData, 0))
-            {
-                logWarning?.Invoke(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "ApplicationIcon '{0}' is not a valid PNG image.",
-                        sourceImagePath
-                    )
-                );
-                return false;
-            }
-
-            using var targetStream = File.Create(targetIcnsPath);
-            MacIcons.FromPngData(pngData).Write(targetStream);
-            return true;
-        }
-
-        if (
-            string.Equals(
-                Path.GetExtension(sourceImagePath),
-                ".ico",
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
-            return TryCreateFromIco(sourceImagePath, targetIcnsPath, logWarning);
-
-        logWarning?.Invoke(
-            string.Format(
-                CultureInfo.InvariantCulture,
-                "ApplicationIcon '{0}' is not a .png, .ico, or .icns file.",
-                sourceImagePath
-            )
-        );
-        return false;
-    }
-
-    private static bool TryCreateFromIco(
+    public static bool TryCreateFromIco(
         string sourceImagePath,
         string targetIcnsPath,
         Action<string>? logWarning
@@ -95,16 +45,19 @@ internal static class IcnsWriter
             return false;
         }
 
-        MacIcons? selectedIcon = null;
-        var selectedArea = -1;
+        // Collect PNG data for each distinct square image size found in the ICO file.
+        // Sizes that don't correspond to a known ICNS type tag are skipped when writing.
+        var pngBySize = new Dictionary<int, byte[]>();
+        var hasPngBySize = new HashSet<int>();
 
         for (var i = 0; i < entryCount; i++)
         {
             var entryOffset = 6 + i * 16;
             var width = icoData[entryOffset] == 0 ? 256 : icoData[entryOffset];
             var height = icoData[entryOffset + 1] == 0 ? 256 : icoData[entryOffset + 1];
-            var area = width * height;
-            if (area < selectedArea)
+
+            // ICNS only supports square images
+            if (width != height)
                 continue;
 
             var bytesInRes = (int)ReadUInt32LittleEndian(icoData, entryOffset + 8);
@@ -122,8 +75,8 @@ internal static class IcnsWriter
             {
                 var pngData = new byte[bytesInRes];
                 Buffer.BlockCopy(icoData, imageOffset, pngData, 0, bytesInRes);
-                selectedIcon = MacIcons.FromPngData(pngData);
-                selectedArea = area;
+                pngBySize[width] = pngData;
+                hasPngBySize.Add(width);
                 continue;
             }
 
@@ -139,11 +92,13 @@ internal static class IcnsWriter
                 continue;
             }
 
-            selectedIcon = MacIcons.FromBitmap(bitmap!);
-            selectedArea = area;
+            // Prefer a native PNG entry over an encoded bitmap for the same size
+            if (!hasPngBySize.Contains(width))
+                pngBySize[width] = MacIcons.EncodeBitmapToPng(bitmap!);
         }
 
-        if (selectedIcon is null)
+        var icons = MacIcons.FromSizedImages(pngBySize);
+        if (icons is null)
         {
             logWarning?.Invoke(
                 string.Format(
@@ -156,7 +111,7 @@ internal static class IcnsWriter
         }
 
         using var targetStream = File.Create(targetIcnsPath);
-        selectedIcon.Write(targetStream);
+        icons.Write(targetStream);
         return true;
     }
 

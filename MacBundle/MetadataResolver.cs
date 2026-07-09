@@ -60,14 +60,14 @@ public static class MetadataResolver
             : string.Join(
                 ".",
                 Enumerable
-                    .Reverse(hostValue.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries))
+                    .Reverse(hostValue.Split(['.'], StringSplitOptions.RemoveEmptyEntries))
                     .Select(SanitizeIdentifierSegmentLower)
             );
 
         var pathPrefix = string.Join(
             ".",
             pathValue
-                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
                 .Select(SanitizeIdentifierSegment)
         );
 
@@ -98,7 +98,7 @@ public static class MetadataResolver
 
     public static string ResolveShortVersion(string fullVersion)
     {
-        var parts = fullVersion.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+        var parts = fullVersion.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length <= 3)
             return fullVersion;
 

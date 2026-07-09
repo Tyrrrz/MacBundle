@@ -1,32 +1,68 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
 namespace MacBundle;
 
-internal class MacIcons(byte[] pngData)
+internal class MacIcons
 {
-    private static readonly byte[] IcnsMagic = { (byte)'i', (byte)'c', (byte)'n', (byte)'s' };
-    private static readonly byte[] Ic10Type = { (byte)'i', (byte)'c', (byte)'1', (byte)'0' };
+    private static readonly byte[] IcnsMagic = [(byte)'i', (byte)'c', (byte)'n', (byte)'s'];
 
-    public static MacIcons FromBitmap(Bitmap bitmap) => new(PngCodec.Encode(bitmap));
+    // Maps square pixel size to the corresponding ICNS type tag
+    private static readonly Dictionary<int, byte[]> TypeTagBySize = new()
+    {
+        { 16, "icp4"u8.ToArray() },
+        { 32, "icp5"u8.ToArray() },
+        { 64, "icp6"u8.ToArray() },
+        { 128, "ic07"u8.ToArray() },
+        { 256, "ic08"u8.ToArray() },
+        { 512, "ic09"u8.ToArray() },
+        { 1024, "ic10"u8.ToArray() },
+    };
 
-    public static MacIcons FromPngData(byte[] data) => new(data);
+    private readonly List<(byte[] typeTag, byte[] pngData)> _entries;
+
+    private MacIcons(List<(byte[] typeTag, byte[] pngData)> entries) => _entries = entries;
+
+    // Creates a MacIcons from multiple size-indexed PNG entries.
+    // Sizes that don't map to a known ICNS type tag are silently skipped.
+    // Returns null if none of the provided sizes are supported.
+    public static MacIcons? FromSizedImages(Dictionary<int, byte[]> pngBySize)
+    {
+        var entries = new List<(byte[] typeTag, byte[] pngData)>();
+        foreach (var pair in pngBySize)
+        {
+            if (TypeTagBySize.TryGetValue(pair.Key, out var typeTag))
+                entries.Add((typeTag, pair.Value));
+        }
+
+        return entries.Count > 0 ? new MacIcons(entries) : null;
+    }
+
+    // Encodes a Bitmap to PNG bytes; used by IcnsWriter when an ICO entry is a raw bitmap
+    internal static byte[] EncodeBitmapToPng(Bitmap bitmap) => PngCodec.Encode(bitmap);
 
     public void Write(Stream stream)
     {
         using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
 
-        var payloadLength = checked(8u + (uint)pngData.Length);
-        var totalLength = checked(8u + payloadLength);
+        var totalPayloadLength = 0u;
+        foreach (var entry in _entries)
+            totalPayloadLength = checked(totalPayloadLength + 8u + (uint)entry.pngData.Length);
 
+        var totalLength = checked(8u + totalPayloadLength);
         writer.Write(IcnsMagic);
         WriteUInt32BigEndian(writer, totalLength);
 
-        writer.Write(Ic10Type);
-        WriteUInt32BigEndian(writer, payloadLength);
-        writer.Write(pngData);
+        foreach (var entry in _entries)
+        {
+            var payloadLength = checked(8u + (uint)entry.pngData.Length);
+            writer.Write(entry.typeTag);
+            WriteUInt32BigEndian(writer, payloadLength);
+            writer.Write(entry.pngData);
+        }
     }
 
     private static void WriteUInt32BigEndian(BinaryWriter writer, uint value)
@@ -39,10 +75,10 @@ internal class MacIcons(byte[] pngData)
 
     private static class PngCodec
     {
-        private static readonly byte[] Signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
-        private static readonly byte[] IhdrType = { (byte)'I', (byte)'H', (byte)'D', (byte)'R' };
-        private static readonly byte[] IdatType = { (byte)'I', (byte)'D', (byte)'A', (byte)'T' };
-        private static readonly byte[] IendType = { (byte)'I', (byte)'E', (byte)'N', (byte)'D' };
+        private static readonly byte[] Signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        private static readonly byte[] IhdrType = [(byte)'I', (byte)'H', (byte)'D', (byte)'R'];
+        private static readonly byte[] IdatType = [(byte)'I', (byte)'D', (byte)'A', (byte)'T'];
+        private static readonly byte[] IendType = [(byte)'I', (byte)'E', (byte)'N', (byte)'D'];
 
         public static byte[] Encode(Bitmap bitmap)
         {
