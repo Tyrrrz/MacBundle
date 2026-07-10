@@ -28,8 +28,6 @@ public class MacBundleProperties
 
     public string? MacOSBundleShortVersion { get; init; }
 
-    public string? InformationalVersion { get; init; }
-
     public string? Version { get; init; }
 
     public string? AssemblyVersion { get; init; }
