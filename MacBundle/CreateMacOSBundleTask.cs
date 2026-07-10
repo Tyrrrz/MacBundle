@@ -15,11 +15,25 @@ public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
 
     public string? MacOSBundleName { get; set; }
 
+    public string? Product { get; set; }
+
+    public string? MacOSBundleDisplayName { get; set; }
+
+    public string? MacOSBundleSpokenName { get; set; }
+
     public string? Copyright { get; set; }
 
     public string? MacOSBundleIdentifier { get; set; }
 
+    public string? MacOSBundleIcon { get; set; }
+
     public string? ApplicationIcon { get; set; }
+
+    public string? MacOSBundleVersion { get; set; }
+
+    public string? MacOSBundleShortVersion { get; set; }
+
+    public string? InformationalVersion { get; set; }
 
     public string? Version { get; set; }
 
@@ -34,10 +48,17 @@ public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
             ProjectDirectory = ProjectDirectory,
             OutputDirectory = OutputDirectory,
             AssemblyName = AssemblyName,
+            Product = Product,
             MacOSBundleName = MacOSBundleName,
+            MacOSBundleDisplayName = MacOSBundleDisplayName,
+            MacOSBundleSpokenName = MacOSBundleSpokenName,
             Copyright = Copyright,
             MacOSBundleIdentifier = MacOSBundleIdentifier,
+            MacOSBundleIcon = MacOSBundleIcon,
             ApplicationIcon = ApplicationIcon,
+            MacOSBundleVersion = MacOSBundleVersion,
+            MacOSBundleShortVersion = MacOSBundleShortVersion,
+            InformationalVersion = InformationalVersion,
             Version = Version,
             AssemblyVersion = AssemblyVersion,
             FileVersion = FileVersion,

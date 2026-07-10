@@ -12,11 +12,11 @@ public static class MetadataResolver
     )
     {
         if (!string.IsNullOrWhiteSpace(configuredIdentifier))
-            return configuredIdentifier!.Trim();
+            return configuredIdentifier.Trim();
 
         var derivedIdentifier = TryDeriveIdentifierFromGitRemote(gitRemoteUrl);
         if (!string.IsNullOrWhiteSpace(derivedIdentifier))
-            return derivedIdentifier!;
+            return derivedIdentifier;
 
         return SanitizeIdentifierSegment(appName);
     }
@@ -26,7 +26,7 @@ public static class MetadataResolver
         if (string.IsNullOrWhiteSpace(gitRemoteUrl))
             return null;
 
-        var url = gitRemoteUrl!.Trim();
+        var url = gitRemoteUrl.Trim();
         string? host = null;
         string? path = null;
 
@@ -49,8 +49,8 @@ public static class MetadataResolver
         if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(path))
             return null;
 
-        var hostValue = host!;
-        var pathValue = path!;
+        var hostValue = host;
+        var pathValue = path;
 
         if (pathValue.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
             pathValue = pathValue.Substring(0, pathValue.Length - 4);
@@ -78,31 +78,39 @@ public static class MetadataResolver
     }
 
     public static string ResolveVersion(
+        string? informationalVersion,
         string? version,
         string? assemblyVersion,
         string? fileVersion,
         string fallback
     )
     {
+        if (!string.IsNullOrWhiteSpace(informationalVersion))
+            return informationalVersion;
+
         if (!string.IsNullOrWhiteSpace(version))
-            return version!;
+            return version;
 
         if (!string.IsNullOrWhiteSpace(assemblyVersion))
-            return assemblyVersion!;
+            return assemblyVersion;
 
         if (!string.IsNullOrWhiteSpace(fileVersion))
-            return fileVersion!;
+            return fileVersion;
 
         return fallback;
     }
 
     public static string ResolveShortVersion(string fullVersion)
     {
-        var parts = fullVersion.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length <= 3)
-            return fullVersion;
+        // CFBundleShortVersionString must be exactly three period-separated non-negative integers.
+        // Strip any pre-release or build metadata suffixes (e.g. "-rc.1+git.abc").
+        var corePart = fullVersion.Split(['-', '+'], 2)[0];
+        var parts = corePart.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
+        var components = new string[3];
+        for (var i = 0; i < 3; i++)
+            components[i] = i < parts.Length ? parts[i] : "0";
 
-        return string.Join(".", parts.Take(3));
+        return string.Join(".", components);
     }
 
     private static string SanitizeIdentifierSegmentLower(string value) =>

@@ -25,7 +25,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' is not a valid ICO image.",
+                    "Icon '{0}' is not a valid ICO image.",
                     sourceImagePath
                 )
             );
@@ -38,7 +38,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' is not a valid ICO image.",
+                    "Icon '{0}' is not a valid ICO image.",
                     sourceImagePath
                 )
             );
@@ -94,7 +94,7 @@ internal static class IcnsWriter
 
             // Prefer a native PNG entry over an encoded bitmap for the same size
             if (!hasPngBySize.Contains(width))
-                pngBySize[width] = MacIcons.EncodeBitmapToPng(bitmap!);
+                pngBySize[width] = MacIcons.EncodeBitmapToPng(bitmap);
         }
 
         var icons = MacIcons.FromSizedImages(pngBySize);
@@ -103,7 +103,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' does not contain supported icon entries.",
+                    "Icon '{0}' does not contain supported icon entries.",
                     sourceImagePath
                 )
             );
