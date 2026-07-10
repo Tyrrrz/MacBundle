@@ -70,7 +70,8 @@ The application bundle will be generated automatically in the output directory w
 
 #### Explicitly enable or disable bundling
 
-By default, **MacBundle** only generates the `.app` bundle when it's relevant — i.e., when the build is targeting the macOS runtime or when the runtime is not specified and the build is running on a macOS host. You can override this behavior by explicitly setting the `<GenerateMacOSBundle>` project property:
+By default, **MacBundle** only generates the `.app` bundle when it's relevant — i.e., when the build is targeting the macOS runtime or when the build is running on a macOS host without a specified runtime.
+You can override this behavior by explicitly setting the `<GenerateMacOSBundle>` project property:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
