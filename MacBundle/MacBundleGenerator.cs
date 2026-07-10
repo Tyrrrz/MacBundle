@@ -26,9 +26,10 @@ public static class MacBundleGenerator
             return true;
         }
 
-        var appName = string.IsNullOrWhiteSpace(options.MacOSBundleName)
-            ? options.AssemblyName
-            : options.MacOSBundleName!;
+        var appName =
+            !string.IsNullOrWhiteSpace(options.MacOSBundleName) ? options.MacOSBundleName
+            : !string.IsNullOrWhiteSpace(options.Product) ? options.Product
+            : options.AssemblyName;
         var appIdentifier = MetadataResolver.ResolveAppIdentifier(
             options.MacOSBundleIdentifier,
             appName,
@@ -62,25 +63,27 @@ public static class MacBundleGenerator
 
         var appIconName = "AppIcon";
         var appIconPath = Path.Combine(resourcesDirectory, appIconName + ".icns");
-        if (!string.IsNullOrWhiteSpace(options.ApplicationIcon))
+        var iconSourcePath = !string.IsNullOrWhiteSpace(options.MacOSBundleIcon)
+            ? options.MacOSBundleIcon
+            : options.ApplicationIcon;
+        if (!string.IsNullOrWhiteSpace(iconSourcePath))
         {
-            TryCreateIcnsIcon(
-                options.ProjectDirectory,
-                options.ApplicationIcon!,
-                appIconPath,
-                logWarning
-            );
+            TryCreateIcnsIcon(options.ProjectDirectory, iconSourcePath, appIconPath, logWarning);
         }
 
         File.WriteAllText(
             Path.Combine(contentsDirectory, "Info.plist"),
             GenerateInfoPlist(
                 appName,
+                options.MacOSBundleDisplayName,
                 options.AssemblyName,
-                appName,
+                options.MacOSBundleSpokenName,
                 appIdentifier,
                 appIconName,
                 options.Copyright,
+                options.MacOSBundleVersion,
+                options.MacOSBundleShortVersion,
+                options.InformationalVersion,
                 options.Version,
                 options.AssemblyVersion,
                 options.FileVersion
@@ -100,23 +103,34 @@ public static class MacBundleGenerator
 
     private static string GenerateInfoPlist(
         string appName,
+        string? displayName,
         string executableName,
-        string appSpokenName,
+        string? spokenName,
         string appIdentifier,
         string appIconName,
         string? appCopyright,
+        string? bundleVersion,
+        string? bundleShortVersion,
+        string? informationalVersion,
         string? version,
         string? assemblyVersion,
         string? fileVersion
     )
     {
-        var fullVersion = MetadataResolver.ResolveVersion(
-            version,
-            assemblyVersion,
-            fileVersion,
-            "1.0.0"
-        );
-        var shortVersion = MetadataResolver.ResolveShortVersion(fullVersion);
+        var resolvedDisplayName = !string.IsNullOrWhiteSpace(displayName) ? displayName : appName;
+        var resolvedSpokenName = !string.IsNullOrWhiteSpace(spokenName) ? spokenName : appName;
+        var fullVersion = !string.IsNullOrWhiteSpace(bundleVersion)
+            ? bundleVersion
+            : MetadataResolver.ResolveVersion(
+                informationalVersion,
+                version,
+                assemblyVersion,
+                fileVersion,
+                "1.0.0"
+            );
+        var shortVersion = !string.IsNullOrWhiteSpace(bundleShortVersion)
+            ? bundleShortVersion
+            : MetadataResolver.ResolveShortVersion(fullVersion);
 
         return $$"""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -124,7 +138,7 @@ public static class MacBundleGenerator
             <plist version="1.0">
               <dict>
                 <key>CFBundleDisplayName</key>
-                <string>{{Escape(appName)}}</string>
+                <string>{{Escape(resolvedDisplayName)}}</string>
                 <key>CFBundleName</key>
                 <string>{{Escape(appName)}}</string>
                 <key>CFBundleExecutable</key>
@@ -134,7 +148,7 @@ public static class MacBundleGenerator
                 <key>CFBundleIdentifier</key>
                 <string>{{Escape(appIdentifier)}}</string>
                 <key>CFBundleSpokenName</key>
-                <string>{{Escape(appSpokenName)}}</string>
+                <string>{{Escape(resolvedSpokenName)}}</string>
                 <key>CFBundleIconFile</key>
                 <string>{{Escape(appIconName)}}</string>
                 <key>CFBundleIconName</key>
@@ -221,7 +235,7 @@ public static class MacBundleGenerator
     {
         return CommandRunner.TryGetStandardOutput(
             "git",
-            new[] { "config", "--get", "remote.origin.url" },
+            ["config", "--get", "remote.origin.url"],
             projectDirectory,
             TimeSpan.FromSeconds(3)
         );

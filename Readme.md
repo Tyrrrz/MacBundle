@@ -94,11 +94,10 @@ You can override this behavior by explicitly setting the `<GenerateMacOSBundle>`
 
 To customize the generated bundle's metadata, you can set the following project properties:
 
-- `<MacOSBundleName>` — application bundle name. This is a short, internal name used to identify the bundle behind the scenes. Maps to the `CFBundleName` key in the `Info.plist` file. Defaults to the value of `<AssemblyName>`.
-- `<MacOSBundleIdentifier>` — application bundle identifier. This is a unique identifier for your application, typically in reverse domain name format. Maps to the `CFBundleIdentifier` key in the `Info.plist` file. Defaults to:
-  - Reverse domain name inferred from the configured git remote (e.g., `io.github.Tyrrrz.DiscordChatExporter`); or
-  - The value of `<MacOSBundleName>`
-
-#### Application icon
-
-**MacBundle** automatically generates a macOS-specific `.icns` icon file based on the `.ico` icon file configured by the `<ApplicationIcon>` project property.
+- `<MacOSBundleName>` — application bundle name, used internally to identify the bundle. Maps to the `CFBundleName` key in the `Info.plist` file. Defaults to the value of `<Product>` or `<AssemblyName>`.
+- `<MacOSBundleDisplayName>` — application display name shown to the user. Maps to the `CFBundleDisplayName` key in the `Info.plist` file. Defaults to the value of `<MacOSBundleName>`.
+- `<MacOSBundleSpokenName>` — application name used by accessibility tools. Maps to the `CFBundleSpokenName` key in the `Info.plist` file. Defaults to the value of `<MacOSBundleName>`.
+- `<MacOSBundleIdentifier>` — application bundle identifier. This is a unique identifier for your application, typically in reverse domain name format. Maps to the `CFBundleIdentifier` key in the `Info.plist` file. Resolved from the configured git remote, if available, or defaults to the value of `<MacOSBundleName>`.
+- `<MacOSBundleVersion>` — full bundle version string. Maps to the `CFBundleVersion` key in the `Info.plist` file. Defaults to the value of `<InformationalVersion>`, `<Version>`, `<AssemblyVersion>`, or `<FileVersion>`.
+- `<MacOSBundleShortVersion>` — short bundle version string shown in Finder and the App Store. Maps to the `CFBundleShortVersionString` key in the `Info.plist` file. Defaults to the three-component version derived from `<MacOSBundleVersion>`.
+- `<MacOSBundleIcon>` — path to the icon file. You can provide an `.icns` file, which will be used as is — or an `.ico` file, which will be automatically converted to `.icns`. Defaults to the value of `<ApplicationIcon>`.

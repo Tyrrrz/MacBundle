@@ -94,7 +94,7 @@ internal static class IcnsWriter
 
             // Prefer a native PNG entry over an encoded bitmap for the same size
             if (!hasPngBySize.Contains(width))
-                pngBySize[width] = MacIcons.EncodeBitmapToPng(bitmap!);
+                pngBySize[width] = MacIcons.EncodeBitmapToPng(bitmap);
         }
 
         var icons = MacIcons.FromSizedImages(pngBySize);
