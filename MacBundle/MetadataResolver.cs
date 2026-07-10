@@ -96,7 +96,11 @@ public static class MetadataResolver
         // Strip pre-release and build metadata suffixes (e.g. "-rc.1+git.abc"),
         // then take up to 3 period-separated numeric components.
         var corePart = raw.Split(['-', '+'], 2)[0];
-        var parts = corePart.Split(['.'], StringSplitOptions.RemoveEmptyEntries).Take(3).ToArray();
+        var parts = corePart
+            .Split(['.'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => p.Length > 0 && p.All(char.IsDigit))
+            .Take(3)
+            .ToArray();
 
         return parts.Length > 0 ? string.Join(".", parts) : fallback;
     }
@@ -106,7 +110,11 @@ public static class MetadataResolver
         // CFBundleShortVersionString must be exactly three period-separated non-negative integers.
         // Strip any pre-release or build metadata suffixes (e.g. "-rc.1+git.abc").
         var corePart = fullVersion.Split(['-', '+'], 2)[0];
-        var parts = corePart.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
+        var parts = corePart
+            .Split(['.'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => p.Length > 0 && p.All(char.IsDigit))
+            .Take(3)
+            .ToArray();
         var components = new string[3];
         for (var i = 0; i < 3; i++)
             components[i] = i < parts.Length ? parts[i] : "0";
