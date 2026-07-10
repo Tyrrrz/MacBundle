@@ -185,7 +185,7 @@ public static class MacBundleGenerator
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' does not exist.",
+                    "Icon '{0}' does not exist.",
                     fullApplicationIconPath
                 )
             );

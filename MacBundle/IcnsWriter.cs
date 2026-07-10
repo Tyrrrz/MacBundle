@@ -25,7 +25,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' is not a valid ICO image.",
+                    "Icon '{0}' is not a valid ICO image.",
                     sourceImagePath
                 )
             );
@@ -38,7 +38,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' is not a valid ICO image.",
+                    "Icon '{0}' is not a valid ICO image.",
                     sourceImagePath
                 )
             );
@@ -103,7 +103,7 @@ internal static class IcnsWriter
             logWarning?.Invoke(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "ApplicationIcon '{0}' does not contain supported icon entries.",
+                    "Icon '{0}' does not contain supported icon entries.",
                     sourceImagePath
                 )
             );
