@@ -30,6 +30,16 @@ public static class MacBundleGenerator
             !string.IsNullOrWhiteSpace(options.MacOSBundleName) ? options.MacOSBundleName
             : !string.IsNullOrWhiteSpace(options.Product) ? options.Product
             : options.AssemblyName;
+        if (appName.Length > 15)
+            throw new InvalidOperationException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Bundle name '{0}' exceeds the 15-character limit. "
+                        + "Set the <MacOSBundleName> property to a shorter name.",
+                    appName
+                )
+            );
+
         var appIdentifier = MetadataResolver.ResolveAppIdentifier(
             options.MacOSBundleIdentifier,
             appName,
@@ -83,7 +93,6 @@ public static class MacBundleGenerator
                 options.Copyright,
                 options.MacOSBundleVersion,
                 options.MacOSBundleShortVersion,
-                options.InformationalVersion,
                 options.Version,
                 options.AssemblyVersion,
                 options.FileVersion
@@ -111,7 +120,6 @@ public static class MacBundleGenerator
         string? appCopyright,
         string? bundleVersion,
         string? bundleShortVersion,
-        string? informationalVersion,
         string? version,
         string? assemblyVersion,
         string? fileVersion
@@ -121,13 +129,7 @@ public static class MacBundleGenerator
         var resolvedSpokenName = !string.IsNullOrWhiteSpace(spokenName) ? spokenName : appName;
         var fullVersion = !string.IsNullOrWhiteSpace(bundleVersion)
             ? bundleVersion
-            : MetadataResolver.ResolveVersion(
-                informationalVersion,
-                version,
-                assemblyVersion,
-                fileVersion,
-                "1.0.0"
-            );
+            : MetadataResolver.ResolveVersion(version, assemblyVersion, fileVersion, "1.0.0");
         var shortVersion = !string.IsNullOrWhiteSpace(bundleShortVersion)
             ? bundleShortVersion
             : MetadataResolver.ResolveShortVersion(fullVersion);
@@ -139,26 +141,37 @@ public static class MacBundleGenerator
               <dict>
                 <key>CFBundleDisplayName</key>
                 <string>{{Escape(resolvedDisplayName)}}</string>
+
                 <key>CFBundleName</key>
                 <string>{{Escape(appName)}}</string>
+
                 <key>CFBundleExecutable</key>
                 <string>{{Escape(executableName)}}</string>
+
                 <key>NSHumanReadableCopyright</key>
                 <string>{{Escape(appCopyright)}}</string>
+
                 <key>CFBundleIdentifier</key>
                 <string>{{Escape(appIdentifier)}}</string>
+
                 <key>CFBundleSpokenName</key>
                 <string>{{Escape(resolvedSpokenName)}}</string>
+
                 <key>CFBundleIconFile</key>
                 <string>{{Escape(appIconName)}}</string>
+
                 <key>CFBundleIconName</key>
                 <string>{{Escape(appIconName)}}</string>
+
                 <key>CFBundleVersion</key>
                 <string>{{Escape(fullVersion)}}</string>
+
                 <key>CFBundleShortVersionString</key>
                 <string>{{Escape(shortVersion)}}</string>
+
                 <key>NSHighResolutionCapable</key>
                 <true />
+
                 <key>CFBundlePackageType</key>
                 <string>APPL</string>
               </dict>

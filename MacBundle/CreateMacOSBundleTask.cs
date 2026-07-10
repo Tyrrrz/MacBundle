@@ -33,8 +33,6 @@ public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
 
     public string? MacOSBundleShortVersion { get; set; }
 
-    public string? InformationalVersion { get; set; }
-
     public string? Version { get; set; }
 
     public string? AssemblyVersion { get; set; }
@@ -58,7 +56,6 @@ public class CreateMacOSBundleTask : Microsoft.Build.Utilities.Task
             ApplicationIcon = ApplicationIcon,
             MacOSBundleVersion = MacOSBundleVersion,
             MacOSBundleShortVersion = MacOSBundleShortVersion,
-            InformationalVersion = InformationalVersion,
             Version = Version,
             AssemblyVersion = AssemblyVersion,
             FileVersion = FileVersion,
