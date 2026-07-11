@@ -26,27 +26,17 @@ public static class MacBundleGenerator
             return true;
         }
 
-        var appName =
-            !string.IsNullOrWhiteSpace(options.MacOSBundleName) ? options.MacOSBundleName
-            : !string.IsNullOrWhiteSpace(options.Product) ? options.Product
-            : options.AssemblyName;
-        if (appName.Length > 15)
+        if (options.Name.Length > 15)
             throw new InvalidOperationException(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     "Bundle name '{0}' exceeds the 15-character limit. "
                         + "Set the <MacOSBundleName> property to a shorter name.",
-                    appName
+                    options.Name
                 )
             );
 
-        var appIdentifier = MetadataResolver.ResolveAppIdentifier(
-            options.MacOSBundleIdentifier,
-            appName,
-            TryGetGitRemoteUrl(options.ProjectDirectory)
-        );
-
-        var bundleDirectory = Path.Combine(outputDirectory, appName + ".app");
+        var bundleDirectory = Path.Combine(outputDirectory, options.Name + ".app");
         var contentsDirectory = Path.Combine(bundleDirectory, "Contents");
         var executableDirectory = Path.Combine(contentsDirectory, "MacOS");
         var resourcesDirectory = Path.Combine(contentsDirectory, "Resources");
@@ -73,29 +63,28 @@ public static class MacBundleGenerator
 
         var appIconName = "AppIcon";
         var appIconPath = Path.Combine(resourcesDirectory, appIconName + ".icns");
-        var iconSourcePath = !string.IsNullOrWhiteSpace(options.MacOSBundleIcon)
-            ? options.MacOSBundleIcon
-            : options.ApplicationIcon;
-        if (!string.IsNullOrWhiteSpace(iconSourcePath))
+        if (!string.IsNullOrWhiteSpace(options.IconSourcePath))
         {
-            TryCreateIcnsIcon(options.ProjectDirectory, iconSourcePath, appIconPath, logWarning);
+            TryCreateIcnsIcon(
+                options.ProjectDirectory,
+                options.IconSourcePath,
+                appIconPath,
+                logWarning
+            );
         }
 
         File.WriteAllText(
             Path.Combine(contentsDirectory, "Info.plist"),
             GenerateInfoPlist(
-                appName,
-                options.MacOSBundleDisplayName,
-                options.AssemblyName,
-                options.MacOSBundleSpokenName,
-                appIdentifier,
+                options.Identifier,
+                options.Name,
+                options.DisplayName,
+                options.SpokenName,
+                options.Version,
+                options.ShortVersion,
                 appIconName,
                 options.Copyright,
-                options.MacOSBundleVersion,
-                options.MacOSBundleShortVersion,
-                options.Version,
-                options.AssemblyVersion,
-                options.FileVersion
+                options.ExecutableName
             )
         );
 
@@ -111,69 +100,57 @@ public static class MacBundleGenerator
     }
 
     private static string GenerateInfoPlist(
-        string appName,
-        string? displayName,
-        string executableName,
-        string? spokenName,
-        string appIdentifier,
-        string appIconName,
-        string? appCopyright,
-        string? bundleVersion,
-        string? bundleShortVersion,
-        string? version,
-        string? assemblyVersion,
-        string? fileVersion
+        string identifier,
+        string name,
+        string displayName,
+        string spokenName,
+        string version,
+        string shortVersion,
+        string iconName,
+        string? copyright,
+        string executableName
     )
     {
-        var resolvedDisplayName = !string.IsNullOrWhiteSpace(displayName) ? displayName : appName;
-        var resolvedSpokenName = !string.IsNullOrWhiteSpace(spokenName) ? spokenName : appName;
-        var fullVersion = !string.IsNullOrWhiteSpace(bundleVersion)
-            ? bundleVersion
-            : MetadataResolver.ResolveVersion(version, assemblyVersion, fileVersion, "1.0.0");
-        var shortVersion = !string.IsNullOrWhiteSpace(bundleShortVersion)
-            ? bundleShortVersion
-            : MetadataResolver.ResolveShortVersion(fullVersion);
-
         return $$"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
             <plist version="1.0">
               <dict>
-                <key>CFBundleDisplayName</key>
-                <string>{{Escape(resolvedDisplayName)}}</string>
+                <key>CFBundlePackageType</key>
+                <string>APPL</string>
+
+                <key>CFBundleIdentifier</key>
+                <string>{{Escape(identifier)}}</string>
 
                 <key>CFBundleName</key>
-                <string>{{Escape(appName)}}</string>
+                <string>{{Escape(name)}}</string>
+
+                <key>CFBundleDisplayName</key>
+                <string>{{Escape(displayName)}}</string>
+
+                <key>CFBundleSpokenName</key>
+                <string>{{Escape(spokenName)}}</string>
 
                 <key>CFBundleExecutable</key>
                 <string>{{Escape(executableName)}}</string>
 
-                <key>NSHumanReadableCopyright</key>
-                <string>{{Escape(appCopyright)}}</string>
-
-                <key>CFBundleIdentifier</key>
-                <string>{{Escape(appIdentifier)}}</string>
-
-                <key>CFBundleSpokenName</key>
-                <string>{{Escape(resolvedSpokenName)}}</string>
-
-                <key>CFBundleIconFile</key>
-                <string>{{Escape(appIconName)}}</string>
-
-                <key>CFBundleIconName</key>
-                <string>{{Escape(appIconName)}}</string>
-
                 <key>CFBundleVersion</key>
-                <string>{{Escape(fullVersion)}}</string>
+                <string>{{Escape(version)}}</string>
 
                 <key>CFBundleShortVersionString</key>
                 <string>{{Escape(shortVersion)}}</string>
 
+                <key>NSHumanReadableCopyright</key>
+                <string>{{Escape(copyright)}}</string>
+
+                <key>CFBundleIconFile</key>
+                <string>{{Escape(iconName)}}</string>
+
+                <key>CFBundleIconName</key>
+                <string>{{Escape(iconName)}}</string>
+
                 <key>NSHighResolutionCapable</key>
                 <true />
-
-                <key>CFBundlePackageType</key>
-                <string>APPL</string>
               </dict>
             </plist>
             """;
@@ -242,15 +219,5 @@ public static class MacBundleGenerator
             Directory.CreateDirectory(destinationDirectory);
 
         File.Copy(sourcePath, destinationPath, true);
-    }
-
-    private static string? TryGetGitRemoteUrl(string projectDirectory)
-    {
-        return CommandRunner.TryGetStandardOutput(
-            "git",
-            ["config", "--get", "remote.origin.url"],
-            projectDirectory,
-            TimeSpan.FromSeconds(3)
-        );
     }
 }
