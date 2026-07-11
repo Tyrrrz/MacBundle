@@ -6,31 +6,21 @@ public class MacBundleProperties
 
     public required string OutputDirectory { get; init; }
 
-    public required string AssemblyName { get; init; }
+    public required string ExecutableName { get; init; }
 
-    public string? Product { get; init; }
+    public required string Identifier { get; init; }
 
-    public string? MacOSBundleName { get; init; }
+    public required string Name { get; init; }
 
-    public string? MacOSBundleDisplayName { get; init; }
+    public required string DisplayName { get; init; }
 
-    public string? MacOSBundleSpokenName { get; init; }
+    public required string SpokenName { get; init; }
+
+    public required string Version { get; init; }
+
+    public required string ShortVersion { get; init; }
+
+    public string? IconSourcePath { get; init; }
 
     public string? Copyright { get; init; }
-
-    public string? MacOSBundleIdentifier { get; init; }
-
-    public string? MacOSBundleIcon { get; init; }
-
-    public string? ApplicationIcon { get; init; }
-
-    public string? MacOSBundleVersion { get; init; }
-
-    public string? MacOSBundleShortVersion { get; init; }
-
-    public string? Version { get; init; }
-
-    public string? AssemblyVersion { get; init; }
-
-    public string? FileVersion { get; init; }
 }
