@@ -119,6 +119,7 @@ Below are some examples of how to configure these properties in your project fil
     <MacOSBundleSpokenName>My App</MacOSBundleSpokenName>
     <MacOSBundleVersion>1.2.3</MacOSBundleVersion>
     <MacOSBundleShortVersion>1.2.3</MacOSBundleShortVersion>
+    <MacOSBundleCopyright>© 2024 Example Inc.</MacOSBundleCopyright>
     <MacOSBundleIcon>Resources/AppIcon.icns</MacOSBundleIcon>
   </PropertyGroup>
 
