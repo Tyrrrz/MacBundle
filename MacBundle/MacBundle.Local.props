@@ -5,8 +5,13 @@
 >
   <Import Project="MacBundle.props" />
 
-  <!-- Props for local testing, used by the demo project -->
+  <!-- Props for local testing, used by the demo projects -->
   <PropertyGroup>
-    <TaskAssembly>$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</TaskAssembly>
+    <TaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</TaskAssembly
+    >
+    <TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/net472/MacBundle.dll</TaskAssembly
+    >
   </PropertyGroup>
 </Project>
