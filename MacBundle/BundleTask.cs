@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using MacBundle.Graphics;
 using MacBundle.Utils;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;

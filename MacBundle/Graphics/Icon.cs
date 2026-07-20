@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace MacBundle;
+namespace MacBundle.Graphics;
 
-internal partial class Icon(IReadOnlyList<Bitmap> bitmaps)
+internal partial class Icon(IReadOnlyList<Image> bitmaps)
 {
-    public IReadOnlyList<Bitmap> Bitmaps { get; } = bitmaps;
+    public IReadOnlyList<Image> Images { get; } = bitmaps;
 }

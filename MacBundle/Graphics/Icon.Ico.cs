@@ -2,10 +2,11 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using MacBundle.Utils;
-using MacBundle.Utils.Extensions;
+using PowerKit.Extensions;
 
-namespace MacBundle;
+namespace MacBundle.Graphics;
 
 internal partial class Icon
 {
@@ -13,46 +14,41 @@ internal partial class Icon
         ReadOnlySpan<byte> imageData,
         int fallbackWidth,
         int fallbackHeight,
-        out Bitmap? bitmap
+        out Image? image
     )
     {
-        bitmap = default;
+        image = default;
 
         if (imageData.Length < 40)
             return false;
 
-        var headerSize = (int)BinaryPrimitives.ReadUInt32LittleEndian(imageData[..sizeof(uint)]);
+        var headerSize = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(imageData));
         if (headerSize < 40 || headerSize > imageData.Length)
             return false;
 
-        var widthRaw = BinaryPrimitives.ReadInt32LittleEndian(imageData.Slice(4, sizeof(int)));
-        var heightRaw = BinaryPrimitives.ReadInt32LittleEndian(imageData.Slice(8, sizeof(int)));
+        var widthRaw = BinaryPrimitives.ReadInt32LittleEndian(imageData[4..]);
+        var heightRaw = BinaryPrimitives.ReadInt32LittleEndian(imageData[8..]);
         var width = widthRaw == 0 ? fallbackWidth : Math.Abs(widthRaw);
         var totalHeight = heightRaw == 0 ? fallbackHeight * 2 : Math.Abs(heightRaw);
         if (width <= 0 || totalHeight < 2)
             return false;
 
         var height = totalHeight / 2;
-        var planes = BinaryPrimitives.ReadUInt16LittleEndian(imageData.Slice(12, sizeof(ushort)));
-        var bitsPerPixel = BinaryPrimitives.ReadUInt16LittleEndian(
-            imageData.Slice(14, sizeof(ushort))
-        );
-        var compression = BinaryPrimitives.ReadUInt32LittleEndian(
-            imageData.Slice(16, sizeof(uint))
-        );
+        var planes = BinaryPrimitives.ReadUInt16LittleEndian(imageData[12..]);
+        var bitsPerPixel = BinaryPrimitives.ReadUInt16LittleEndian(imageData[14..]);
+        var compression = BinaryPrimitives.ReadUInt32LittleEndian(imageData[16..]);
         if (planes != 1 || compression != 0 || (bitsPerPixel != 24 && bitsPerPixel != 32))
             return false;
 
         var colorDataOffset = headerSize;
-        var xorStride = (width * bitsPerPixel + 31) / 32 * 4;
+        var xorStride = checked((width * bitsPerPixel + 31) / 32 * 4);
         var xorDataSize = checked(xorStride * height);
-        var andStride = (width + 31) / 32 * 4;
+        var andStride = checked((width + 31) / 32 * 4);
         var andDataSize = checked(andStride * height);
         if (colorDataOffset + xorDataSize + andDataSize > imageData.Length)
             return false;
 
         var rgbaData = new byte[checked(width * height * 4)];
-
         for (var y = 0; y < height; y++)
         {
             var sourceY = height - 1 - y;
@@ -83,7 +79,7 @@ internal partial class Icon
                     a = 255;
                 }
 
-                var maskBit = (imageData[andRowOffset + x / 8] >> (7 - (x % 8))) & 1;
+                var maskBit = (imageData[andRowOffset + x / 8] >> (7 - x % 8)) & 1;
                 if (maskBit != 0)
                     a = 0;
 
@@ -95,74 +91,91 @@ internal partial class Icon
             }
         }
 
-        bitmap = new Bitmap(width, height, rgbaData);
+        image = new Image(rgbaData, width, height);
         return true;
+    }
+
+    private static Icon LoadIcoFromSeekable(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+
+        // -- Header
+
+        // Reserved (always zero), type (always one)
+        if (reader.ReadUInt16() != 0 || reader.ReadUInt16() != 1)
+            throw new InvalidDataException("The stream does not contain a valid ICO image.");
+
+        // Image count
+        var imageCount = reader.ReadUInt16();
+        var images = new List<Image>(imageCount);
+
+        // -- Image directory
+        for (var i = 0; i < imageCount; i++)
+        {
+            // Width, height
+            var widthByte = reader.ReadByte();
+            var heightByte = reader.ReadByte();
+            var width = widthByte == 0 ? 256 : widthByte;
+            var height = heightByte == 0 ? 256 : heightByte;
+
+            // Color count, reserved, color planes, bits per pixel
+            _ = reader.ReadByte();
+            _ = reader.ReadByte();
+            _ = reader.ReadUInt16();
+            _ = reader.ReadUInt16();
+
+            // Image data length, offset
+            var imageDataLength = reader.ReadUInt32();
+            var imageDataOffset = reader.ReadUInt32();
+            if (
+                imageDataOffset > stream.Length
+                || imageDataLength > stream.Length - imageDataOffset
+            )
+            {
+                throw new InvalidDataException(
+                    "The ICO image contains an invalid image-data range."
+                );
+            }
+
+            if (imageDataLength < Png.Signature.Length)
+                continue;
+
+            var imageDataPortal = stream.CreatePortal(imageDataOffset);
+
+            // Image data (PNG)
+            Span<byte> signature = stackalloc byte[Png.Signature.Length];
+            using (imageDataPortal.Jump())
+                stream.ReadExactly(signature);
+
+            if (Png.StartsWithSignature(signature))
+            {
+                using (imageDataPortal.Jump())
+                    images.Add(Image.LoadPng(stream));
+
+                continue;
+            }
+
+            // Image data (BMP)
+            var imageData = new byte[checked((int)imageDataLength)];
+            using (imageDataPortal.Jump())
+                stream.ReadExactly(imageData);
+
+            if (TryDecodeBitmapFromIcoFrame(imageData, width, height, out var image))
+                images.Add(image);
+        }
+
+        return new Icon(images);
     }
 
     public static Icon LoadIco(Stream stream)
     {
-        var icoData = stream.ReadAllBytes();
+        if (stream.CanSeek)
+            return LoadIcoFromSeekable(stream);
 
-        if (
-            icoData.Length < 6
-            || BinaryPrimitives.ReadUInt16LittleEndian(icoData.AsSpan(0, sizeof(ushort))) != 0
-            || BinaryPrimitives.ReadUInt16LittleEndian(icoData.AsSpan(2, sizeof(ushort))) != 1
-        )
-        {
-            throw new InvalidDataException("The stream does not contain a valid ICO image.");
-        }
+        using var seekableStream = new MemoryStream();
+        stream.CopyTo(seekableStream);
+        seekableStream.Position = 0;
 
-        var entryCount = BinaryPrimitives.ReadUInt16LittleEndian(icoData.AsSpan(4, sizeof(ushort)));
-        if (entryCount == 0 || icoData.Length < 6 + entryCount * 16)
-        {
-            throw new InvalidDataException("The stream does not contain a valid ICO image.");
-        }
-
-        var bitmapsBySize = new Dictionary<int, Bitmap>();
-        var hasPngBySize = new HashSet<int>();
-
-        for (var i = 0; i < entryCount; i++)
-        {
-            var entryOffset = 6 + i * 16;
-            var width = icoData[entryOffset] == 0 ? 256 : icoData[entryOffset];
-            var height = icoData[entryOffset + 1] == 0 ? 256 : icoData[entryOffset + 1];
-
-            if (width != height)
-                continue;
-
-            var bytesInRes = (int)
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    icoData.AsSpan(entryOffset + 8, sizeof(uint))
-                );
-
-            var imageOffset = (int)
-                BinaryPrimitives.ReadUInt32LittleEndian(
-                    icoData.AsSpan(entryOffset + 12, sizeof(uint))
-                );
-
-            var imageData = icoData.AsSpan(imageOffset, bytesInRes);
-            if (Png.StartsWithSignature(imageData))
-            {
-                bitmapsBySize[width] = Bitmap.FromPngBytes(imageData);
-                hasPngBySize.Add(width);
-                continue;
-            }
-
-            if (!TryDecodeBitmapFromIcoFrame(imageData, width, height, out var bitmap))
-                continue;
-
-            // Prefer native PNG entries over raw BMP payloads for the same size
-            if (!hasPngBySize.Contains(width))
-                bitmapsBySize[width] = bitmap;
-        }
-
-        if (bitmapsBySize.Count == 0)
-        {
-            throw new InvalidDataException(
-                "The ICO image does not contain supported icon entries."
-            );
-        }
-
-        return new Icon([.. bitmapsBySize.Values]);
+        return LoadIcoFromSeekable(seekableStream);
     }
 }

@@ -1,9 +1,10 @@
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using PowerKit.Extensions;
 
-namespace MacBundle;
+namespace MacBundle.Graphics;
 
 internal partial class Icon
 {
@@ -18,50 +19,71 @@ internal partial class Icon
         { 1024, "ic10"u8.ToArray() },
     };
 
+    private void SaveIcnsToSeekable(Stream stream)
+    {
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        var imagesBySize = Images
+            .Where(i => i.Width == i.Height)
+            .Where(i => TypeTagsBySize.ContainsKey(i.Width))
+            .DistinctBy(i => i.Width)
+            .ToDictionary(i => i.Width, i => i);
+
+        if (!imagesBySize.Any())
+        {
+            throw new InvalidOperationException(
+                "No supported icon sizes are available for the ICNS output."
+            );
+        }
+
+        // -- Header
+
+        // Magic
+        stream.Write("icns"u8);
+
+        // Length (will overwrite later)
+        var lengthPortal = stream.CreatePortal();
+        writer.WriteBigEndian(0u);
+
+        foreach (var (size, image) in imagesBySize)
+        {
+            // -- Icon entry
+
+            // Type
+            stream.Write(TypeTagsBySize[size]);
+
+            // Length (will overwrite later)
+            var entryLengthPortal = stream.CreatePortal();
+            writer.WriteBigEndian(0u);
+
+            // Image data
+            image.SavePng(stream);
+
+            // Update length
+            var entryLength = stream.Position - entryLengthPortal.Position + sizeof(uint);
+            using (entryLengthPortal.Jump())
+                writer.WriteBigEndian(checked((uint)entryLength));
+        }
+
+        // Update length
+        var length = stream.Position - lengthPortal.Position + sizeof(uint);
+        using (lengthPortal.Jump())
+            writer.WriteBigEndian(checked((uint)length));
+    }
+
     public void SaveIcns(Stream stream)
     {
-        var pngBySize = new Dictionary<int, byte[]>();
-        foreach (var bitmap in Bitmaps)
+        if (!stream.CanSeek)
         {
-            if (bitmap.Width != bitmap.Height)
-                continue;
+            using var seekableStream = new MemoryStream();
+            SaveIcnsToSeekable(seekableStream);
 
-            if (!TypeTagsBySize.ContainsKey(bitmap.Width))
-                continue;
-
-            pngBySize[bitmap.Width] = bitmap.ToPngBytes();
+            seekableStream.Position = 0;
+            seekableStream.CopyTo(stream);
         }
-
-        var entries = new List<(byte[] typeTag, byte[] pngData)>();
-        foreach (var pair in pngBySize)
+        else
         {
-            if (TypeTagsBySize.TryGetValue(pair.Key, out var typeTag))
-                entries.Add((typeTag, pair.Value));
-        }
-
-        if (entries.Count == 0)
-            throw new InvalidOperationException(
-                "No supported icon sizes are available for ICNS output."
-            );
-
-        var lengthBuffer = new byte[sizeof(uint)];
-
-        var totalPayloadLength = 0u;
-        foreach (var (_, pngData) in entries)
-            totalPayloadLength = checked(totalPayloadLength + 8u + (uint)pngData.Length);
-
-        var totalLength = checked(8u + totalPayloadLength);
-        stream.Write("icns"u8);
-        BinaryPrimitives.WriteUInt32BigEndian(lengthBuffer, totalLength);
-        stream.Write(lengthBuffer);
-
-        foreach (var (typeTag, pngData) in entries)
-        {
-            var payloadLength = checked(8u + (uint)pngData.Length);
-            stream.Write(typeTag, 0, typeTag.Length);
-            BinaryPrimitives.WriteUInt32BigEndian(lengthBuffer, payloadLength);
-            stream.Write(lengthBuffer);
-            stream.Write(pngData, 0, pngData.Length);
+            SaveIcnsToSeekable(stream);
         }
     }
 }
