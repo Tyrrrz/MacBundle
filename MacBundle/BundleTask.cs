@@ -142,7 +142,7 @@ public class BundleTask : Task
             using var sourceStream = File.OpenRead(BundleIconFilePath);
             using var destinationStream = File.Create(iconDestinationFilePath);
 
-            var icon = Icon.LoadIco(sourceStream);
+            var icon = sourceStream.LoadIco();
             icon.SaveIcns(destinationStream);
         }
         // Unknown format
