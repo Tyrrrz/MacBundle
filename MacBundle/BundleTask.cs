@@ -52,42 +52,29 @@ public class BundleTask : Task
     public string TargetBundleResourcesDirectoryPath =>
         Path.Combine(TargetBundleContentsDirectoryPath, "Resources");
 
-    private void InitializeDirectories()
+    private void CopyApplicationFiles()
     {
-        Log.LogMessage("Creating bundle directories...");
-
-        Directory.Reset(TargetBundleDirectoryPath);
-        Directory.CreateDirectory(TargetBundleBinDirectoryPath);
-        Directory.CreateDirectory(TargetBundleResourcesDirectoryPath);
-
-        Log.LogMessage("Created bundle directories at '{0}'.", TargetBundleDirectoryPath);
-    }
-
-    private void CopyBinaryFiles()
-    {
-        Log.LogMessage("Copying binary files to bundle...");
+        Log.LogMessage("Copying application files to bundle...");
 
         foreach (var sourcePath in Directory.EnumerateFileSystemEntries(TargetDirectoryPath))
         {
-            if (
-                Path.GetFullPath(sourcePath)
-                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                == Path.GetFullPath(TargetBundleDirectoryPath)
-                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            )
-            {
+            // Skip the bundle itself to avoid infinite recursion
+            if (Path.AreEqual(sourcePath, TargetBundleDirectoryPath))
                 continue;
-            }
+
+            Directory.CreateDirectory(TargetBundleBinDirectoryPath);
 
             var destinationPath = Path.Combine(
                 TargetBundleBinDirectoryPath,
                 Path.GetFileName(sourcePath)
             );
 
+            // Source is a directory
             if (Directory.Exists(sourcePath))
             {
                 Directory.Copy(sourcePath, destinationPath, true);
             }
+            // Source is a file
             else
             {
                 var destinationDirectoryPath = Path.GetDirectoryName(destinationPath);
@@ -98,7 +85,10 @@ public class BundleTask : Task
             }
         }
 
-        Log.LogMessage("Copied binary files to bundle at '{0}'.", TargetBundleBinDirectoryPath);
+        Log.LogMessage(
+            "Copied application files to bundle at '{0}'.",
+            TargetBundleBinDirectoryPath
+        );
     }
 
     private void CopyIconFile()
@@ -107,9 +97,11 @@ public class BundleTask : Task
 
         if (string.IsNullOrWhiteSpace(BundleIconFilePath))
         {
-            Log.LogMessage("No bundle icon file specified.");
+            Log.LogMessage("No icon file specified.");
             return;
         }
+
+        Directory.CreateDirectory(TargetBundleResourcesDirectoryPath);
 
         var iconDestinationFilePath = Path.Combine(
             TargetBundleResourcesDirectoryPath,
@@ -160,6 +152,8 @@ public class BundleTask : Task
     {
         Log.LogMessage("Creating manifest file...");
 
+        Directory.CreateDirectory(TargetBundleContentsDirectoryPath);
+
         var manifestFilePath = Path.Combine(TargetBundleContentsDirectoryPath, "Info.plist");
 
         var properties = new BundleProperties
@@ -196,8 +190,9 @@ public class BundleTask : Task
         Log.LogMessage("Bundle icon: '{0}'", BundleIconFilePath);
         Log.LogMessage("Target: '{0}'", TargetFilePath);
 
-        InitializeDirectories();
-        CopyBinaryFiles();
+        Directory.Reset(TargetBundleDirectoryPath);
+
+        CopyApplicationFiles();
         CopyIconFile();
         CreateManifestFile();
 
