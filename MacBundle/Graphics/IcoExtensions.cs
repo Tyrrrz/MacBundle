@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using PowerKit;
 using PowerKit.Extensions;
+using SixLabors.ImageSharp;
 
 namespace MacBundle.Graphics;
 
@@ -14,7 +15,7 @@ internal static class IcoExtensions
         {
             return Image.LoadPng(stream);
         }
-        catch (InvalidDataException)
+        catch (UnknownImageFormatException)
         {
             return null;
         }
