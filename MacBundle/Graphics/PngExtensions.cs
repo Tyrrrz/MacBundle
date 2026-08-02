@@ -9,16 +9,6 @@ internal static class PngExtensions
 {
     extension(Image image)
     {
-        public void SavePng(Stream stream)
-        {
-            using var imageSharp = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(
-                image.Rgba32,
-                image.Width,
-                image.Height
-            );
-            imageSharp.SaveAsPng(stream);
-        }
-
         public static Image LoadPng(Stream stream)
         {
             using var imageSharp = SixLabors.ImageSharp.Image.Load<Rgba32>(stream);
@@ -30,6 +20,16 @@ internal static class PngExtensions
             imageSharp.CopyPixelDataTo(buffer.Span);
 
             return new Image(buffer.Span.ToArray(), imageSharp.Width, imageSharp.Height);
+        }
+
+        public void SavePng(Stream stream)
+        {
+            using var imageSharp = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(
+                image.Rgba32,
+                image.Width,
+                image.Height
+            );
+            imageSharp.SaveAsPng(stream);
         }
     }
 }

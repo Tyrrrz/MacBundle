@@ -16,6 +16,7 @@ internal static class IcnsExtensions
             using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
 
             var imagesBySize = icon
+                // Only square images are supported
                 .Images.Where(i => i.Width == i.Height)
                 // Width must be a power of two
                 .Where(i => i.Width > 0 && (i.Width & (i.Width - 1)) == 0)
