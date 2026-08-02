@@ -121,10 +121,10 @@ internal static class IcoExtensions
 
             var image =
                 TryDecodePngFromIcoFrame(dataStream)
-                ?? TryDecodeBmpFromIcoFrame(dataStream, width, height);
+                ?? TryDecodeBmpFromIcoFrame(dataStream, width, height)
+                ?? throw new InvalidDataException($"Unsupported ICO image format at index {i}.");
 
-            if (image is not null)
-                images[i] = image;
+            images[i] = image;
         }
 
         return new Icon(images);
