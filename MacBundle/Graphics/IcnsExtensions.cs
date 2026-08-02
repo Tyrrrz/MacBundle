@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,17 +9,6 @@ namespace MacBundle.Graphics;
 
 internal static class IcnsExtensions
 {
-    private static readonly Dictionary<int, byte[]> TypeTagsBySize = new()
-    {
-        { 16, "icp4"u8.ToArray() },
-        { 32, "icp5"u8.ToArray() },
-        { 64, "icp6"u8.ToArray() },
-        { 128, "ic07"u8.ToArray() },
-        { 256, "ic08"u8.ToArray() },
-        { 512, "ic09"u8.ToArray() },
-        { 1024, "ic10"u8.ToArray() },
-    };
-
     extension(Icon icon)
     {
         private void SaveIcnsToSeekable(Stream stream)
@@ -29,7 +17,8 @@ internal static class IcnsExtensions
 
             var imagesBySize = icon
                 .Images.Where(i => i.Width == i.Height)
-                .Where(i => TypeTagsBySize.ContainsKey(i.Width))
+                // Width must be a power of two
+                .Where(i => i.Width > 0 && (i.Width & (i.Width - 1)) == 0)
                 .DistinctBy(i => i.Width)
                 .ToDictionary(i => i.Width, i => i);
 
@@ -50,7 +39,9 @@ internal static class IcnsExtensions
             foreach (var (size, image) in imagesBySize)
             {
                 // Type
-                stream.Write(TypeTagsBySize[size]);
+                var typeExponent = (int)Math.Log(size, 2);
+                var typeCode = size < 128 ? "icp" + typeExponent : "ic0" + typeExponent;
+                writer.Write(typeCode.ToCharArray()); // cast to array to avoid length prefix
 
                 // Length (will overwrite later)
                 var entryLengthPortal = stream.CreatePortal();
