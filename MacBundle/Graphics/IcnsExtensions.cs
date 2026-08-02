@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using PowerKit;
 using PowerKit.Extensions;
@@ -19,7 +20,7 @@ internal static class IcnsExtensions
                 // Only square images are supported
                 .Images.Where(i => i.Width == i.Height)
                 // Width must be a power of two
-                .Where(i => i.Width > 0 && (i.Width & (i.Width - 1)) == 0)
+                .Where(i => BitOperations.IsPow2(i.Width))
                 .DistinctBy(i => i.Width)
                 .ToDictionary(i => i.Width, i => i);
 
@@ -40,7 +41,7 @@ internal static class IcnsExtensions
             foreach (var (size, image) in imagesBySize)
             {
                 // Type
-                var typeExponent = (int)Math.Log(size, 2);
+                var typeExponent = BitOperations.Log2((uint)size);
                 var typeCode = size < 128 ? "icp" + typeExponent : "ic0" + typeExponent;
                 writer.Write(typeCode.ToCharArray()); // cast to array to avoid length prefix
 
