@@ -11,8 +11,7 @@ namespace MacBundle;
 
 public class BundleTask : Task
 {
-    [Required]
-    public required string? BundleIdentifier { get; init; }
+    public string? BundleIdentifier { get; init; }
 
     public string BundleName { get; init; }
 
@@ -123,7 +122,7 @@ public class BundleTask : Task
 
         var iconDestinationFilePath = Path.Combine(
             TargetBundleResourcesDirectoryPath,
-            Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns"))
+            Path.GetFileNameWithoutExtension(BundleIconFilePath) + ".icns"
         );
 
         // Direct copy
@@ -174,19 +173,26 @@ public class BundleTask : Task
         var properties = new BundleProperties
         {
             Identifier =
-                BundleIdentifier
+                BundleIdentifier?.NullIfWhiteSpace()
                 ?? Git.TryGetRemoteOriginUrl()?.Pipe(TryResolveBundleIdentifierFromGitRemoteUrl)
                 ?? BundleName,
             Name = BundleName,
-            DisplayName = BundleDisplayName ?? BundleName,
-            SpokenName = BundleSpokenName ?? BundleDisplayName ?? BundleName,
+            DisplayName = BundleDisplayName?.NullIfWhiteSpace() ?? BundleName,
+            SpokenName =
+                BundleSpokenName?.NullIfWhiteSpace()
+                ?? BundleDisplayName?.NullIfWhiteSpace()
+                ?? BundleName,
             ExecutableName = Path.GetFileNameWithoutExtension(TargetFilePath),
             Copyright = BundleCopyright,
-            Version = BundleVersion ?? "1.0.0",
-            ShortVersion = BundleShortVersion ?? BundleVersion ?? "1.0.0",
-            IconName = !string.IsNullOrWhiteSpace(BundleIconFilePath)
-                ? Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns"))
-                : null,
+            Version = BundleVersion?.NullIfWhiteSpace() ?? "1.0.0",
+            ShortVersion =
+                BundleShortVersion?.NullIfWhiteSpace()
+                ?? BundleVersion?.NullIfWhiteSpace()
+                ?? "1.0.0",
+            IconName = BundleIconFilePath
+                ?.NullIfWhiteSpace()
+                ?.Pipe(Path.GetFileNameWithoutExtension)
+                ?.Pipe(s => s + ".icns"),
         };
 
         File.WriteAllText(manifestFilePath, properties.ToString());
