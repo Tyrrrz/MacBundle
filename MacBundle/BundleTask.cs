@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using MacBundle.Graphics;
 using MacBundle.Utils;
 using Microsoft.Build.Framework;
@@ -11,31 +12,24 @@ namespace MacBundle;
 public class BundleTask : Task
 {
     [Required]
-    public required string? BundleIdentifier { get; set; }
+    public required string? BundleIdentifier { get; init; }
+
+    public string BundleName { get; init; }
+
+    public string? BundleDisplayName { get; init; }
+
+    public string? BundleSpokenName { get; init; }
+
+    public string? BundleCopyright { get; init; }
+
+    public string? BundleVersion { get; init; }
+
+    public string? BundleShortVersion { get; init; }
+
+    public string? BundleIconFilePath { get; init; }
 
     [Required]
-    public required string BundleName { get; set; }
-
-    [Required]
-    public required string BundleDisplayName { get; set; }
-
-    [Required]
-    public required string BundleSpokenName { get; set; }
-
-    [Required]
-    public required string? BundleCopyright { get; set; }
-
-    [Required]
-    public required string BundleVersion { get; set; }
-
-    [Required]
-    public required string BundleShortVersion { get; set; }
-
-    [Required]
-    public required string? BundleIconFilePath { get; set; }
-
-    [Required]
-    public required string TargetFilePath { get; set; }
+    public required string TargetFilePath { get; init; }
 
     public string TargetDirectoryPath =>
         Path.GetDirectoryName(TargetFilePath) ?? Directory.GetCurrentDirectory();
@@ -52,9 +46,36 @@ public class BundleTask : Task
     public string TargetBundleResourcesDirectoryPath =>
         Path.Combine(TargetBundleContentsDirectoryPath, "Resources");
 
+    private static string? TryResolveBundleIdentifierFromGitRemoteUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
+
+        var uri = Ssh.TryParse(url);
+        if (uri is null && !Uri.TryCreate(url, UriKind.Absolute, out uri))
+            return null;
+
+        var host = string.Join(
+            '.',
+            uri.Host
+                // Replace github.com/gitlab.com hosts with github.io/gitlab.io
+                // for consistency with Pages domains.
+                .Replace("github.com", "github.io")
+                .Replace("gitlab.com", "gitlab.io")
+                .Split('.', StringSplitOptions.RemoveEmptyEntries)
+                .AsEnumerable()
+                .Reverse()
+        );
+
+        // Cut the ".git" suffix and replace slashes with dots
+        var path = uri.AbsolutePath.TrimStart('/').SubstringUntilLast(".git").Replace('/', '.');
+
+        return host + "." + path;
+    }
+
     private void CopyApplicationFiles()
     {
-        Log.LogMessage("Copying application files to bundle...");
+        Log.LogMessage("Copying application files to the bundle...");
 
         foreach (var sourcePath in Directory.EnumerateFileSystemEntries(TargetDirectoryPath))
         {
@@ -85,15 +106,12 @@ public class BundleTask : Task
             }
         }
 
-        Log.LogMessage(
-            "Copied application files to bundle at '{0}'.",
-            TargetBundleBinDirectoryPath
-        );
+        Log.LogMessage("Copied application files to '{0}'.", TargetBundleBinDirectoryPath);
     }
 
     private void CopyIconFile()
     {
-        Log.LogMessage("Copying icon file to bundle...");
+        Log.LogMessage("Copying icon file to the bundle...");
 
         if (string.IsNullOrWhiteSpace(BundleIconFilePath))
         {
@@ -105,7 +123,7 @@ public class BundleTask : Task
 
         var iconDestinationFilePath = Path.Combine(
             TargetBundleResourcesDirectoryPath,
-            BundleProperties.IconName + ".icns"
+            Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns"))
         );
 
         // Direct copy
@@ -117,7 +135,6 @@ public class BundleTask : Task
             )
         )
         {
-            Log.LogMessage("Provided icon file is in the ICNS format.");
             File.Copy(BundleIconFilePath, iconDestinationFilePath, true);
         }
         // Conversion from ICO
@@ -129,12 +146,10 @@ public class BundleTask : Task
             )
         )
         {
-            Log.LogMessage("Provided icon file is in the ICO format.");
-
             using var sourceStream = File.OpenRead(BundleIconFilePath);
             using var destinationStream = File.Create(iconDestinationFilePath);
 
-            var icon = sourceStream.LoadIco();
+            var icon = Icon.LoadIco(sourceStream);
             icon.SaveIcns(destinationStream);
         }
         // Unknown format
@@ -145,12 +160,12 @@ public class BundleTask : Task
             );
         }
 
-        Log.LogMessage("Copied icon file to bundle at '{0}'.", iconDestinationFilePath);
+        Log.LogMessage("Copied the icon file to '{0}'.", iconDestinationFilePath);
     }
 
     private void CreateManifestFile()
     {
-        Log.LogMessage("Creating manifest file...");
+        Log.LogMessage("Creating the manifest file...");
 
         Directory.CreateDirectory(TargetBundleContentsDirectoryPath);
 
@@ -160,22 +175,21 @@ public class BundleTask : Task
         {
             Identifier =
                 BundleIdentifier
-                ?? BundleProperties.TryGetIdentifierFromUrl(
-                    GitConfiguration.TryResolve(TargetDirectoryPath)?.RemoteOriginUrl
-                )
+                ?? Git.TryGetRemoteOriginUrl()?.Pipe(TryResolveBundleIdentifierFromGitRemoteUrl)
                 ?? BundleName,
             Name = BundleName,
-            DisplayName = BundleDisplayName,
-            SpokenName = BundleSpokenName,
+            DisplayName = BundleDisplayName ?? BundleName,
+            SpokenName = BundleSpokenName ?? BundleDisplayName ?? BundleName,
             ExecutableName = Path.GetFileNameWithoutExtension(TargetFilePath),
-            Copyright = BundleCopyright,
-            Version = BundleVersion,
-            ShortVersion = BundleShortVersion,
+            Copyright = BundleCopyright ?? "",
+            Version = BundleVersion ?? "1.0.0",
+            ShortVersion = BundleShortVersion ?? BundleVersion ?? "1.0.0",
+            IconName = Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns")),
         };
 
         File.WriteAllText(manifestFilePath, properties.ToString());
 
-        Log.LogMessage("Created manifest file at '{0}'.", manifestFilePath);
+        Log.LogMessage("Created the manifest file at '{0}'.", manifestFilePath);
     }
 
     public override bool Execute()

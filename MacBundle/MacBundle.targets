@@ -6,19 +6,10 @@
   >
     <PropertyGroup>
       <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
-      <MacOSBundleDisplayName Condition="'$(MacOSBundleDisplayName)' == ''"
-        >$(MacOSBundleName)</MacOSBundleDisplayName
-      >
-      <MacOSBundleSpokenName Condition="'$(MacOSBundleSpokenName)' == ''"
-        >$(MacOSBundleDisplayName)</MacOSBundleSpokenName
-      >
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >
       <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''">$(Version)</MacOSBundleVersion>
-      <MacOSBundleShortVersion Condition="'$(MacOSBundleShortVersion)' == ''"
-        >$(MacOSBundleVersion)</MacOSBundleShortVersion
-      >
       <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
     </PropertyGroup>
 
@@ -42,19 +33,10 @@
   >
     <PropertyGroup>
       <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
-      <MacOSBundleDisplayName Condition="'$(MacOSBundleDisplayName)' == ''"
-        >$(MacOSBundleName)</MacOSBundleDisplayName
-      >
-      <MacOSBundleSpokenName Condition="'$(MacOSBundleSpokenName)' == ''"
-        >$(MacOSBundleDisplayName)</MacOSBundleSpokenName
-      >
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >
       <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''">$(Version)</MacOSBundleVersion>
-      <MacOSBundleShortVersion Condition="'$(MacOSBundleShortVersion)' == ''"
-        >$(MacOSBundleVersion)</MacOSBundleShortVersion
-      >
       <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
     </PropertyGroup>
 

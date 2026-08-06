@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
-using MacBundle.Utils;
 using PowerKit;
-using PowerKit.Extensions;
 
 namespace MacBundle;
 
-public partial class BundleProperties
+public class BundleProperties
 {
     public required string Identifier { get; init; }
 
@@ -32,11 +29,55 @@ public partial class BundleProperties
 
     public required string ExecutableName { get; init; }
 
-    public required string? Copyright { get; init; }
+    public required string Copyright { get; init; }
 
-    public required string Version { get; init; }
+    public required string Version
+    {
+        get;
+        init
+        {
+            if (!System.Version.TryParse(value, out var version))
+            {
+                throw new InvalidOperationException(
+                    $"Bundle version '{value}' is not a valid version string."
+                );
+            }
 
-    public required string ShortVersion { get; init; }
+            if (version.Revision >= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Bundle version '{value}' has more than 3 components."
+                );
+            }
+
+            field = version.ToString();
+        }
+    }
+
+    public required string ShortVersion
+    {
+        get;
+        init
+        {
+            if (!System.Version.TryParse(value, out var version))
+            {
+                throw new InvalidOperationException(
+                    $"Bundle version '{value}' is not a valid version string."
+                );
+            }
+
+            if (version.Revision >= 0)
+            {
+                throw new InvalidOperationException(
+                    $"Bundle version '{value}' has more than 3 components."
+                );
+            }
+
+            field = version.ToString();
+        }
+    }
+
+    public required string IconName { get; init; }
 
     public override string ToString() =>
         $$"""
@@ -82,54 +123,4 @@ public partial class BundleProperties
               </dict>
             </plist>
             """;
-}
-
-public partial class BundleProperties
-{
-    public const string IconName = "AppIcon";
-
-    public static string? TryGetIdentifierFromUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            return null;
-
-        var uri = Ssh.TryParse(url);
-        if (uri is null && !Uri.TryCreate(url, UriKind.Absolute, out uri))
-        {
-            return null;
-        }
-
-        var host = string.Join(
-            '.',
-            uri.Host
-                // Replace github.com/gitlab.com hosts with github.io/gitlab.io
-                // for consistency with Pages domains.
-                .Replace("github.com", "github.io")
-                .Replace("gitlab.com", "gitlab.io")
-                .Split('.', StringSplitOptions.RemoveEmptyEntries)
-                .AsEnumerable()
-                .Reverse()
-        );
-
-        // Cut the ".git" suffix and replace slashes with dots
-        var path = uri.AbsolutePath.TrimStart('/').SubstringUntilLast(".git").Replace('/', '.');
-
-        return host + "." + path;
-    }
-
-    public static string? TrySanitizeVersion(string? versionText)
-    {
-        if (string.IsNullOrWhiteSpace(versionText))
-            return null;
-
-        var version = versionText
-            .Trim()
-            // Trim leading 'v' or 'V' characters
-            .TrimStart('v', 'V')
-            // Cut the pre-release suffix
-            .SubstringUntil("-")
-            .Pipe(s => System.Version.TryParse(s, out var parsed) ? parsed : null);
-
-        return version?.ToString(3);
-    }
 }

@@ -4,33 +4,35 @@ using System.IO;
 
 namespace MacBundle.Utils;
 
-internal partial class GitConfiguration(string? remoteOriginUrl)
+internal static class Git
 {
-    public string? RemoteOriginUrl { get; } = remoteOriginUrl;
-}
-
-internal partial class GitConfiguration
-{
-    private static string? TryGetGitDirectoryPath(string workingDirectoryPath)
+    private static string? TryGetDirectoryPath(string? workingDirectoryPath = null)
     {
-        var directoryInfo = new DirectoryInfo(workingDirectoryPath);
+        var directory = new DirectoryInfo(workingDirectoryPath ?? Directory.GetCurrentDirectory());
 
-        while (directoryInfo is not null)
+        while (directory is not null)
         {
-            var gitDirectoryPath = Path.Combine(directoryInfo.FullName, ".git");
+            var gitDirectoryPath = Path.Combine(directory.FullName, ".git");
 
             if (Directory.Exists(gitDirectoryPath))
                 return gitDirectoryPath;
 
-            directoryInfo = directoryInfo.Parent;
+            directory = directory.Parent;
         }
 
         return null;
     }
 
-    private static IReadOnlyDictionary<string, string> GetConfig(string configFilePath)
+    private static IReadOnlyDictionary<string, string>? TryGetConfig(
+        string? workingDirectoryPath = null
+    )
     {
-        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var gitDirectoryPath = TryGetDirectoryPath(workingDirectoryPath);
+        if (string.IsNullOrWhiteSpace(gitDirectoryPath))
+            return null;
+
+        var configFilePath = Path.Combine(gitDirectoryPath, "config");
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         var currentSectionName = string.Empty;
         var currentSubsectionName = string.Empty;
@@ -72,31 +74,17 @@ internal partial class GitConfiguration
                 var subsectionPrefix = string.IsNullOrWhiteSpace(currentSubsectionName)
                     ? string.Empty
                     : "." + currentSubsectionName;
+
                 var keyName = line[..separatorIndex].Trim();
                 var configKey = currentSectionName + subsectionPrefix + "." + keyName;
 
-                map[configKey] = line[(separatorIndex + 1)..].Trim();
+                result[configKey] = line[(separatorIndex + 1)..].Trim();
             }
         }
 
-        return map;
+        return result;
     }
 
-    public static GitConfiguration? TryResolve(string? workingDirectoryPath = null)
-    {
-        var gitDirectoryPath = TryGetGitDirectoryPath(
-            workingDirectoryPath ?? Directory.GetCurrentDirectory()
-        );
-
-        if (gitDirectoryPath is null)
-            return null;
-
-        var configFilePath = Path.Combine(gitDirectoryPath, "config");
-        if (!File.Exists(configFilePath))
-            return null;
-
-        var config = GetConfig(configFilePath);
-
-        return new GitConfiguration(config.GetValueOrDefault("remote.origin.url"));
-    }
+    public static string? TryGetRemoteOriginUrl(string? workingDirectoryPath = null) =>
+        TryGetConfig(workingDirectoryPath)?.GetValueOrDefault("remote.origin.url");
 }
