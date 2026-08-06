@@ -4,11 +4,11 @@
   TreatAsLocalProperty="TaskAssembly"
 >
   <PropertyGroup>
-    <GenerateMacOSBundle Condition="'$(GenerateMacOSBundle)' == ''">false</GenerateMacOSBundle>
     <GenerateMacOSBundle
       Condition="'$(GenerateMacOSBundle)' == '' and ($(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx')) or ('$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOsPlatform('OSX'))))"
       >true</GenerateMacOSBundle
     >
+    <GenerateMacOSBundle Condition="'$(GenerateMacOSBundle)' == ''">false</GenerateMacOSBundle>
   </PropertyGroup>
 
   <PropertyGroup>

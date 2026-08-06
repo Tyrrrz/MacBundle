@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -42,7 +43,13 @@ internal static class IcnsExtensions
             {
                 // Type
                 var typeExponent = BitOperations.Log2((uint)size);
-                var typeCode = size < 128 ? "icp" + typeExponent : "ic0" + typeExponent;
+                var typeCode = typeExponent switch
+                {
+                    < 7 => "icp" + typeExponent,
+                    < 10 => "ic0" + typeExponent,
+                    _ => "ic" + typeExponent,
+                };
+
                 writer.Write(typeCode.ToCharArray()); // cast to array to avoid length prefix
 
                 // Length (will overwrite later)

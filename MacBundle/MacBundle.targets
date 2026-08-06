@@ -6,6 +6,7 @@
   >
     <PropertyGroup>
       <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(AssemblyName)</MacOSBundleName>
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >
@@ -33,6 +34,7 @@
   >
     <PropertyGroup>
       <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(AssemblyName)</MacOSBundleName>
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >

@@ -181,10 +181,12 @@ public class BundleTask : Task
             DisplayName = BundleDisplayName ?? BundleName,
             SpokenName = BundleSpokenName ?? BundleDisplayName ?? BundleName,
             ExecutableName = Path.GetFileNameWithoutExtension(TargetFilePath),
-            Copyright = BundleCopyright ?? "",
+            Copyright = BundleCopyright,
             Version = BundleVersion ?? "1.0.0",
             ShortVersion = BundleShortVersion ?? BundleVersion ?? "1.0.0",
-            IconName = Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns")),
+            IconName = !string.IsNullOrWhiteSpace(BundleIconFilePath)
+                ? Path.GetFileName(Path.ChangeExtension(BundleIconFilePath, ".icns"))
+                : null,
         };
 
         File.WriteAllText(manifestFilePath, properties.ToString());

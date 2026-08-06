@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
 using PowerKit;
 
 namespace MacBundle;
@@ -7,7 +10,7 @@ public class BundleProperties
 {
     public required string Identifier { get; init; }
 
-    public required string Name
+    public required string? Name
     {
         get;
         init
@@ -23,15 +26,15 @@ public class BundleProperties
         }
     }
 
-    public required string DisplayName { get; init; }
+    public required string? DisplayName { get; init; }
 
-    public required string SpokenName { get; init; }
+    public required string? SpokenName { get; init; }
 
-    public required string ExecutableName { get; init; }
+    public required string? ExecutableName { get; init; }
 
-    public required string Copyright { get; init; }
+    public required string? Copyright { get; init; }
 
-    public required string Version
+    public required string? Version
     {
         get;
         init
@@ -54,7 +57,7 @@ public class BundleProperties
         }
     }
 
-    public required string ShortVersion
+    public required string? ShortVersion
     {
         get;
         init
@@ -77,50 +80,53 @@ public class BundleProperties
         }
     }
 
-    public required string IconName { get; init; }
+    public required string? IconName { get; init; }
 
-    public override string ToString() =>
-        $$"""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-              <dict>
-                <key>CFBundlePackageType</key>
-                <string>APPL</string>
+    public override string ToString()
+    {
+        var keyValuePairs = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["CFBundlePackageType"] = "APPL",
+            ["CFBundleIdentifier"] = Identifier,
+            ["CFBundleName"] = Name,
+            ["CFBundleDisplayName"] = DisplayName,
+            ["CFBundleSpokenName"] = SpokenName,
+            ["CFBundleExecutable"] = ExecutableName,
+            ["NSHumanReadableCopyright"] = Copyright,
+            ["CFBundleVersion"] = Version,
+            ["CFBundleShortVersionString"] = ShortVersion,
+            ["CFBundleIconFile"] = IconName,
+            ["CFBundleIconName"] = IconName,
+            ["NSHighResolutionCapable"] = "true",
+        };
 
-                <key>CFBundleIdentifier</key>
-                <string>{{Xml.Escape(Identifier)}}</string>
+        var doc = new XDocument(
+            new XDeclaration("1.0", "UTF-8", null),
+            new XDocumentType(
+                "plist",
+                "-//Apple//DTD PLIST 1.0//EN",
+                "http://www.apple.com/DTDs/PropertyList-1.0.dtd",
+                null
+            ),
+            new XElement(
+                "plist",
+                new XAttribute("version", "1.0"),
+                new XElement(
+                    "dict",
+                    keyValuePairs
+                        .Where(kvp => !string.IsNullOrWhiteSpace(kvp.Value))
+                        .Select(kvp =>
+                            new object[]
+                            {
+                                new XElement("key", kvp.Key),
+                                new XElement("string", kvp.Value),
+                            }
+                        )
+                        .SelectMany(x => x)
+                )
+            )
+        );
 
-                <key>CFBundleName</key>
-                <string>{{Xml.Escape(Name)}}</string>
-
-                <key>CFBundleDisplayName</key>
-                <string>{{Xml.Escape(DisplayName)}}</string>
-
-                <key>CFBundleSpokenName</key>
-                <string>{{Xml.Escape(SpokenName)}}</string>
-
-                <key>CFBundleExecutable</key>
-                <string>{{Xml.Escape(ExecutableName)}}</string>
-
-                <key>NSHumanReadableCopyright</key>
-                <string>{{Xml.Escape(Copyright)}}</string>
-
-                <key>CFBundleVersion</key>
-                <string>{{Xml.Escape(Version)}}</string>
-
-                <key>CFBundleShortVersionString</key>
-                <string>{{Xml.Escape(ShortVersion)}}</string>
-
-                <key>CFBundleIconFile</key>
-                <string>{{Xml.Escape(IconName)}}</string>
-
-                <key>CFBundleIconName</key>
-                <string>{{Xml.Escape(IconName)}}</string>
-
-                <key>NSHighResolutionCapable</key>
-                <true />
-              </dict>
-            </plist>
-            """;
+        return doc.ToString();
+    }
 }
