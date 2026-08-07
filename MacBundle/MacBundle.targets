@@ -10,7 +10,9 @@
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >
-      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''">$(Version)</MacOSBundleVersion>
+      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''"
+        >$([System.String]::Copy('$(Version)').Split('-')[0])</MacOSBundleVersion
+      >
       <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
     </PropertyGroup>
 
@@ -38,7 +40,9 @@
       <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
         >$(Copyright)</MacOSBundleCopyright
       >
-      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''">$(Version)</MacOSBundleVersion>
+      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''"
+        >$([System.String]::Copy('$(Version)').Split('-')[0])</MacOSBundleVersion
+      >
       <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
     </PropertyGroup>
 
