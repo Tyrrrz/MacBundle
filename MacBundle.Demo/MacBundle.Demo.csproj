@@ -11,12 +11,6 @@
     <ApplicationIcon>../favicon.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateMacOSBundle>true</GenerateMacOSBundle>
-    <MacOSBundleName>MacBundleDemo</MacOSBundleName>
-    <MacOSBundleIdentifier>io.github.Tyrrrz.MacBundleDemo</MacOSBundleIdentifier>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CSharpier.MSBuild" PrivateAssets="all" />
   </ItemGroup>
