@@ -95,12 +95,12 @@ You can override this behavior by explicitly setting the `<GenerateMacOSBundle>`
 To customize the generated bundle's metadata, you can set the following project properties:
 
 - `<MacOSBundleIdentifier>` — unique string used to uniquely identify the bundle within the system, typically in reverse domain name format. Maps to the [`CFBundleIdentifier`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleidentifier) key in the `Info.plist` file. Resolved from the configured git remote, if available, or defaults to the value of `<AssemblyName>`.
-- `<MacOSBundleName>` — bundle name, limited to 15 characters. Maps to the [`CFBundleName`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundlename) key in the `Info.plist` file. Defaults to the value of `<Product>` or `<AssemblyName>`.
+- `<MacOSBundleName>` — bundle name, limited to 15 characters. Maps to the [`CFBundleName`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundlename) key in the `Info.plist` file. Defaults to the value of `<Product>`.
 - `<MacOSBundleDisplayName>` — bundle name, not limited in length. Maps to the [`CFBundleDisplayName`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundledisplayname) key in the `Info.plist` file. Defaults to the value of `<MacOSBundleName>`.
 - `<MacOSBundleSpokenName>` — bundle name used by accessibility tools. Maps to the [`CFBundleSpokenName`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundlespokenname) key in the `Info.plist` file. Defaults to the value of `<MacOSBundleDisplayName>`.
-- `<MacOSBundleVersion>` — bundle version string, in a 3-number format, used internally by the system. Maps to the [`CFBundleVersion`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleversion) key in the `Info.plist` file. Defaults to the value of `<Version>`, `<AssemblyVersion>`, `<FileVersion>`, or `1.0.0`.
-- `<MacOSBundleShortVersion>` — bundle version string, in a 3-number format, displayed publicly. Maps to the [`CFBundleShortVersionString`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring) key in the `Info.plist` file. Defaults to the value of `<MacOSBundleVersion>`.
 - `<MacOSBundleCopyright>` — copyright string displayed in the application's info panel. Maps to the [`NSHumanReadableCopyright`](https://developer.apple.com/documentation/bundleresources/information-property-list/nshumanreadablecopyright) key in the `Info.plist` file. Defaults to the value of `<Copyright>`.
+- `<MacOSBundleVersion>` — bundle version string, in a 3-number format, used internally by the system. Maps to the [`CFBundleVersion`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleversion) key in the `Info.plist` file. Defaults to the value of `<Version>`.
+- `<MacOSBundleShortVersion>` — bundle version string, in a 3-number format, displayed publicly. Maps to the [`CFBundleShortVersionString`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring) key in the `Info.plist` file. Defaults to the value of `<MacOSBundleVersion>`.
 - `<MacOSBundleIcon>` — path to the icon file. You can provide an `.icns` file, which will be used as is — or an `.ico` file, which will be automatically converted to `.icns`. Maps to the [`CFBundleIconFile`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleiconfile) and [`CFBundleIconName`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleiconname) keys in the `Info.plist` file. Defaults to the value of `<ApplicationIcon>`.
 
 Below are some examples of how to configure these properties in your project file:
@@ -117,9 +117,9 @@ Below are some examples of how to configure these properties in your project fil
     <MacOSBundleName>MyApp</MacOSBundleName>
     <MacOSBundleDisplayName>My Application</MacOSBundleDisplayName>
     <MacOSBundleSpokenName>My App</MacOSBundleSpokenName>
+    <MacOSBundleCopyright>© 2024 Example Inc.</MacOSBundleCopyright>
     <MacOSBundleVersion>1.2.3</MacOSBundleVersion>
     <MacOSBundleShortVersion>1.2.3</MacOSBundleShortVersion>
-    <MacOSBundleCopyright>© 2024 Example Inc.</MacOSBundleCopyright>
     <MacOSBundleIcon>Resources/AppIcon.icns</MacOSBundleIcon>
   </PropertyGroup>
 

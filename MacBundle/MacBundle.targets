@@ -1,62 +1,61 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <Target
-    Name="GenerateMacOSBundleAfterBuild"
+    Name="MacBundle_GenerateBundleAfterBuild"
     AfterTargets="Build"
-    Condition="'$(GenerateMacOSBundle)' == 'true' and '$(OutputType)' != 'Library'"
+    Condition="$(GenerateMacOSBundle)"
   >
-    <CreateMacOSBundleTask
-      ProjectDirectory="$(MSBuildProjectDirectory)"
-      OutputDirectory="$(TargetDir)"
-      AssemblyName="$(AssemblyName)"
-      Product="$(Product)"
-      MacOSBundleName="$(MacOSBundleName)"
-      MacOSBundleDisplayName="$(MacOSBundleDisplayName)"
-      MacOSBundleSpokenName="$(MacOSBundleSpokenName)"
-      MacOSBundleIdentifier="$(MacOSBundleIdentifier)"
-      MacOSBundleIcon="$(MacOSBundleIcon)"
-      MacOSBundleVersion="$(MacOSBundleVersion)"
-      MacOSBundleShortVersion="$(MacOSBundleShortVersion)"
-      MacOSBundleCopyright="$(MacOSBundleCopyright)"
-      Copyright="$(Copyright)"
-      ApplicationIcon="$(ApplicationIcon)"
-      Version="$(Version)"
-      AssemblyVersion="$(AssemblyVersion)"
-      FileVersion="$(FileVersion)"
+    <PropertyGroup>
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(AssemblyName)</MacOSBundleName>
+      <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
+        >$(Copyright)</MacOSBundleCopyright
+      >
+      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''"
+        >$([System.String]::Copy('$(Version)').Split('-')[0])</MacOSBundleVersion
+      >
+      <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
+    </PropertyGroup>
+
+    <BundleTask
+      BundleIdentifier="$(MacOSBundleIdentifier)"
+      BundleName="$(MacOSBundleName)"
+      BundleDisplayName="$(MacOSBundleDisplayName)"
+      BundleSpokenName="$(MacOSBundleSpokenName)"
+      BundleCopyright="$(MacOSBundleCopyright)"
+      BundleVersion="$(MacOSBundleVersion)"
+      BundleShortVersion="$(MacOSBundleShortVersion)"
+      BundleIconFilePath="$(MacOSBundleIcon)"
+      TargetFilePath="$(TargetPath)"
     />
   </Target>
 
   <Target
-    Name="GenerateMacOSBundleAfterPublish"
+    Name="MacBundle_GenerateBundleAfterPublish"
     AfterTargets="Publish"
-    Condition="'$(GenerateMacOSBundle)' == 'true' and '$(OutputType)' != 'Library'"
+    Condition="$(GenerateMacOSBundle)"
   >
     <PropertyGroup>
-      <_MacBundleOutputPath Condition="$([System.IO.Path]::IsPathRooted('$(PublishDir)'))"
-        >$(PublishDir)</_MacBundleOutputPath
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(Product)</MacOSBundleName>
+      <MacOSBundleName Condition="'$(MacOSBundleName)' == ''">$(AssemblyName)</MacOSBundleName>
+      <MacOSBundleCopyright Condition="'$(MacOSBundleCopyright)' == ''"
+        >$(Copyright)</MacOSBundleCopyright
       >
-      <_MacBundleOutputPath Condition="!$([System.IO.Path]::IsPathRooted('$(PublishDir)'))"
-        >$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(PublishDir)'))</_MacBundleOutputPath
+      <MacOSBundleVersion Condition="'$(MacOSBundleVersion)' == ''"
+        >$([System.String]::Copy('$(Version)').Split('-')[0])</MacOSBundleVersion
       >
+      <MacOSBundleIcon Condition="'$(MacOSBundleIcon)' == ''">$(ApplicationIcon)</MacOSBundleIcon>
     </PropertyGroup>
 
-    <CreateMacOSBundleTask
-      ProjectDirectory="$(MSBuildProjectDirectory)"
-      OutputDirectory="$(_MacBundleOutputPath)"
-      AssemblyName="$(AssemblyName)"
-      Product="$(Product)"
-      MacOSBundleName="$(MacOSBundleName)"
-      MacOSBundleDisplayName="$(MacOSBundleDisplayName)"
-      MacOSBundleSpokenName="$(MacOSBundleSpokenName)"
-      MacOSBundleIdentifier="$(MacOSBundleIdentifier)"
-      MacOSBundleIcon="$(MacOSBundleIcon)"
-      MacOSBundleVersion="$(MacOSBundleVersion)"
-      MacOSBundleShortVersion="$(MacOSBundleShortVersion)"
-      MacOSBundleCopyright="$(MacOSBundleCopyright)"
-      Copyright="$(Copyright)"
-      ApplicationIcon="$(ApplicationIcon)"
-      Version="$(Version)"
-      AssemblyVersion="$(AssemblyVersion)"
-      FileVersion="$(FileVersion)"
+    <BundleTask
+      BundleIdentifier="$(MacOSBundleIdentifier)"
+      BundleName="$(MacOSBundleName)"
+      BundleDisplayName="$(MacOSBundleDisplayName)"
+      BundleSpokenName="$(MacOSBundleSpokenName)"
+      BundleCopyright="$(MacOSBundleCopyright)"
+      BundleVersion="$(MacOSBundleVersion)"
+      BundleShortVersion="$(MacOSBundleShortVersion)"
+      BundleIconFilePath="$(MacOSBundleIcon)"
+      TargetFilePath="$([System.IO.Path]::Combine('$(ProjectDir)', '$(PublishDir)/$(AssemblyName).dll'))"
     />
   </Target>
 </Project>
