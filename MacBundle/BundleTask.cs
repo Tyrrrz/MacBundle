@@ -13,7 +13,7 @@ public class BundleTask : Task
 {
     public string? BundleIdentifier { get; init; }
 
-    public string BundleName { get; init; }
+    public string? BundleName { get; init; }
 
     public string? BundleDisplayName { get; init; }
 
@@ -174,7 +174,8 @@ public class BundleTask : Task
         {
             Identifier =
                 BundleIdentifier?.NullIfWhiteSpace()
-                ?? Git.TryGetRemoteOriginUrl()?.Pipe(TryResolveBundleIdentifierFromGitRemoteUrl)
+                ?? Git.TryGetRemoteOriginUrl(TargetDirectoryPath)
+                    ?.Pipe(TryResolveBundleIdentifierFromGitRemoteUrl)
                 ?? BundleName,
             Name = BundleName,
             DisplayName = BundleDisplayName?.NullIfWhiteSpace() ?? BundleName,

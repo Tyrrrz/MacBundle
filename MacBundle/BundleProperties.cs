@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using PowerKit;
 
 namespace MacBundle;
 
@@ -15,7 +14,7 @@ public class BundleProperties
         get;
         init
         {
-            if (value.Length > 15)
+            if (value?.Length > 15)
             {
                 throw new InvalidOperationException(
                     $"Bundle name '{value}' exceeds the 15-character limit."
@@ -39,6 +38,12 @@ public class BundleProperties
         get;
         init
         {
+            if (value is null)
+            {
+                field = value;
+                return;
+            }
+
             if (!System.Version.TryParse(value, out var version))
             {
                 throw new InvalidOperationException(
@@ -62,6 +67,12 @@ public class BundleProperties
         get;
         init
         {
+            if (value is null)
+            {
+                field = value;
+                return;
+            }
+
             if (!System.Version.TryParse(value, out var version))
             {
                 throw new InvalidOperationException(
