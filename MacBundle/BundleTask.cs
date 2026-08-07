@@ -13,7 +13,8 @@ public class BundleTask : Task
 {
     public string? BundleIdentifier { get; init; }
 
-    public string BundleName { get; init; }
+    [Required]
+    public required string BundleName { get; init; }
 
     public string? BundleDisplayName { get; init; }
 
