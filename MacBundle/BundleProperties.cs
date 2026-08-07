@@ -10,12 +10,12 @@ public class BundleProperties
 {
     public required string Identifier { get; init; }
 
-    public required string? Name
+    public required string Name
     {
         get;
         init
         {
-            if (value?.Length > 15)
+            if (value.Length > 15)
             {
                 throw new InvalidOperationException(
                     $"Bundle name '{value}' exceeds the 15-character limit."
