@@ -22,7 +22,12 @@
   <ItemGroup>
     <PackageReference Include="CSharpier.MSBuild" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="all" />
+    <PackageReference
+      Include="Microsoft.Build.Utilities.Core"
+      IncludeAssets="compile; build; native; contentfiles; analyzers; buildtransitive"
+      ExcludeAssets="runtime"
+      PrivateAssets="all"
+    />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
     <PackageReference Include="PowerKit" Internalize="true" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" Internalize="true" PrivateAssets="all" />
