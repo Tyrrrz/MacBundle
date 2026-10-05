@@ -15,6 +15,8 @@
 
   <ItemGroup>
     <None Include="../favicon.png" Pack="true" PackagePath="" Visible="false" />
+    <Content Include="MacBundle.props" Pack="true" PackagePath="build" />
+    <Content Include="MacBundle.targets" Pack="true" PackagePath="build" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,11 +26,6 @@
     <PackageReference Include="PolyShim" PrivateAssets="all" />
     <PackageReference Include="PowerKit" Internalize="true" PrivateAssets="all" />
     <PackageReference Include="SixLabors.ImageSharp" Internalize="true" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="MacBundle.props" Pack="true" PackagePath="build" />
-    <Content Include="MacBundle.targets" Pack="true" PackagePath="build" />
   </ItemGroup>
 
   <!-- Embed package references inside this package -->
