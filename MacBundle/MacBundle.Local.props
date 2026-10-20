@@ -4,8 +4,10 @@
   <!-- Props for local testing, used by the demo projects -->
   <PropertyGroup>
     <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
-      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</MacBundleTaskAssembly>
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</MacBundleTaskAssembly
+    >
     <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
-      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/net472/MacBundle.dll</MacBundleTaskAssembly>
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/net472/MacBundle.dll</MacBundleTaskAssembly
+    >
   </PropertyGroup>
 </Project>
