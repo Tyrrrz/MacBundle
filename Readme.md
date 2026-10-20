@@ -79,13 +79,16 @@ You can override this behavior by explicitly setting the `<GenerateMacOSBundle>`
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net11.0</TargetFramework>
-    <!-- ... -->
+  </PropertyGroup>
 
+  <PropertyGroup>
     <!-- Always generate the macOS app bundle -->
     <GenerateMacOSBundle>true</GenerateMacOSBundle>
   </PropertyGroup>
 
-  <!-- ... -->
+  <ItemGroup>
+    <PackageReference Include="MacBundle" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>
 ```
@@ -111,8 +114,9 @@ Below are some examples of how to configure these properties in your project fil
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net11.0</TargetFramework>
-    <!-- ... -->
+  </PropertyGroup>
 
+  <PropertyGroup>
     <MacOSBundleIdentifier>com.example.MyApp</MacOSBundleIdentifier>
     <MacOSBundleName>MyApp</MacOSBundleName>
     <MacOSBundleDisplayName>My Application</MacOSBundleDisplayName>
@@ -123,7 +127,9 @@ Below are some examples of how to configure these properties in your project fil
     <MacOSBundleIcon>Resources/AppIcon.icns</MacOSBundleIcon>
   </PropertyGroup>
 
-  <!-- ... -->
+  <ItemGroup>
+    <PackageReference Include="MacBundle" PrivateAssets="all" />
+  </ItemGroup>
 
 </Project>
 ```
