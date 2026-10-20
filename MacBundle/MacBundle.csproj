@@ -30,7 +30,10 @@
     />
     <PackageReference Include="PolyShim" PrivateAssets="all" />
     <PackageReference Include="PowerKit" Internalize="true" PrivateAssets="all" />
-    <PackageReference Include="SixLabors.ImageSharp" Internalize="true" PrivateAssets="all" />
+    <PackageReference Include="SixLabors.ImageSharp" Internalize="true" PrivateAssets="all">
+      <!-- Higher versions don't support .NET Standard 2.0 -->
+      <NoWarn>NU1902;NU1903</NoWarn>
+    </PackageReference>
   </ItemGroup>
 
   <!-- Embed package references inside this package -->
