@@ -1,17 +1,11 @@
-<Project
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-  ToolsVersion="4.0"
-  TreatAsLocalProperty="TaskAssembly"
->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <Import Project="MacBundle.props" />
 
   <!-- Props for local testing, used by the demo projects -->
   <PropertyGroup>
-    <TaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
-      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</TaskAssembly
-    >
-    <TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
-      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/net472/MacBundle.dll</TaskAssembly
-    >
+    <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/netstandard2.0/MacBundle.dll</MacBundleTaskAssembly>
+    <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
+      >$(MSBuildThisFileDirectory)/bin/$(Configuration)/net472/MacBundle.dll</MacBundleTaskAssembly>
   </PropertyGroup>
 </Project>

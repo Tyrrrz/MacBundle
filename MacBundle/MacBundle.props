@@ -1,24 +1,17 @@
-<Project
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-  ToolsVersion="4.0"
-  TreatAsLocalProperty="TaskAssembly"
->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <GenerateMacOSBundle
       Condition="'$(GenerateMacOSBundle)' == '' and ($(RuntimeIdentifier.ToLowerInvariant().StartsWith('osx')) or ('$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOsPlatform('OSX'))))"
-      >true</GenerateMacOSBundle
-    >
+      >true</GenerateMacOSBundle>
     <GenerateMacOSBundle Condition="'$(GenerateMacOSBundle)' == ''">false</GenerateMacOSBundle>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
-      >$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/MacBundle.dll</TaskAssembly
-    >
-    <TaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
-      >$(MSBuildThisFileDirectory)/../tasks/net472/MacBundle.dll</TaskAssembly
-    >
+    <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'"
+      >$(MSBuildThisFileDirectory)/../tasks/netstandard2.0/MacBundle.dll</MacBundleTaskAssembly>
+    <MacBundleTaskAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'"
+      >$(MSBuildThisFileDirectory)/../tasks/net472/MacBundle.dll</MacBundleTaskAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="MacBundle.BundleTask" AssemblyFile="$(TaskAssembly)" />
+  <UsingTask TaskName="MacBundle.BundleTask" AssemblyFile="$(MacBundleTaskAssembly)" />
 </Project>
